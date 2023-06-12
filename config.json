@@ -1,6 +1,7 @@
 {
     "name": "students-api",
     "port": 3003,
+    "prefix": "/api/v1",
     "endpoints": [
         {
             "name": "students",
@@ -11,7 +12,8 @@
                 "PATCH",
                 "DELETE"
             ],
-            "object" : "student"
+            "object" : "student",
+            "hasId" : true
         }
     ]
 }

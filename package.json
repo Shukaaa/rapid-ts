@@ -1,7 +1,7 @@
 {
-  "name": "jrags-js",
+  "name": "rapid-ts",
   "version": "1.0.0",
-  "description": "json-rest-api-generator (simple) - JavaScript",
+  "description": "(R)EST (A)PI (P)rovisioning and (I)ntegration with JSON (D)ata",
   "scripts": {
     "build": "npx tsc",
     "start": "node dist/index.js",
@@ -10,6 +10,7 @@
   "author": "shukaaa",
   "license": "ISC",
   "dependencies": {
+    "body-parser": "^1.20.2",
     "express": "^4.18.2"
   },
   "devDependencies": {

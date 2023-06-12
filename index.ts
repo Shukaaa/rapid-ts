@@ -1,3 +1,5 @@
-import { runApi } from "./src/api";
+import {RapidServer} from "./src/RapidServer";
 
-runApi();
+let server: RapidServer = new RapidServer();
+
+//server.close() // Closes the server
