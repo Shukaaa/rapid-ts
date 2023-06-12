@@ -1,0 +1,17 @@
+{
+    "name": "students-api",
+    "port": 3003,
+    "endpoints": [
+        {
+            "name": "students",
+            "methods" : [
+                "GET",
+                "POST",
+                "PUT",
+                "PATCH",
+                "DELETE"
+            ],
+            "object" : "student"
+        }
+    ]
+}
