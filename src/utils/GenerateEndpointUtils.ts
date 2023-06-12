@@ -13,22 +13,26 @@ export class GenerateEndpointUtils {
                 app.get(endpoint_name, (req, res) => {
                     res.json(JsonFileService.readJsonFile(path))
                 })
+                break;
 
-                if (hasID) {
-                    app.get(endpoint_name + "/:id", (req, res) => {
-                        const id = req.params.id
-                        let jsonFile = JsonFileService.readJsonFile(path)
-
-                        for(let i = 0; i < jsonFile.length; i++) {
-                            if (jsonFile[i]["id"] == id) {
-                                res.json(jsonFile[i])
-                                return
-                            }
-                        }
-
-                        ErrorUtils.jsonThrow("Couldn't find object with id " + id, res)
-                    })
+            case "GET_BY_ID":
+                if (!hasID) {
+                    throw Error("GET_BY_ID method is not allowed for " + name + " because it doesn't have an id")
                 }
+
+                app.get(endpoint_name + "/:id", (req, res) => {
+                    const id = req.params.id
+                    let jsonFile = JsonFileService.readJsonFile(path)
+
+                    for(let i = 0; i < jsonFile.length; i++) {
+                        if (jsonFile[i]["id"] == id) {
+                            res.json(jsonFile[i])
+                            return
+                        }
+                    }
+
+                    ErrorUtils.jsonThrow("Couldn't find object with id " + id, res)
+                })
                 break;
 
             case "POST":
@@ -62,7 +66,7 @@ export class GenerateEndpointUtils {
                         }
                     }
 
-                    jsonFile.data.push(object.object)
+                    jsonFile.push(object.object)
                     JsonFileService.writeJsonFile(path, jsonFile)
 
                     res.status(201).json(object.object)
@@ -100,9 +104,9 @@ export class GenerateEndpointUtils {
                     }
 
                     // replace the object with the same id
-                    for (let i = 0; i < jsonFile.data.length; i++) {
-                        if (jsonFile.data[i]["id"] == object.object.id) {
-                            jsonFile.data[i] = object.object
+                    for (let i = 0; i < jsonFile.length; i++) {
+                        if (jsonFile[i]["id"] == object.object.id) {
+                            jsonFile[i] = object.object
                             JsonFileService.writeJsonFile(path, jsonFile)
 
                             res.json(object.object)
@@ -113,13 +117,17 @@ export class GenerateEndpointUtils {
                 break;
 
             case "DELETE":
+                if (!hasID) {
+                    throw Error("DELETE method is not allowed for " + name + " because it doesn't have an id")
+                }
+
                 app.delete(endpoint_name + "/:id", (req, res) => {
-                    const id = req.params.id
+                    const id = +req.params.id
                     let jsonFile = JsonFileService.readJsonFile(path)
 
-                    for(let i = 0; i < jsonFile.data.length; i++) {
-                        if (jsonFile.data[i]["id"] == id) {
-                            jsonFile.data.splice(i, 1)
+                    for(let i = 0; i < jsonFile.length; i++) {
+                        if (jsonFile[i]["id"] == id) {
+                            jsonFile.splice(i, 1)
                             JsonFileService.writeJsonFile(path, jsonFile)
 
                             res.status(204).send()
@@ -132,8 +140,32 @@ export class GenerateEndpointUtils {
                 break;
 
             case "PATCH":
-                app.patch(endpoint_name, (req, res) => {
-                    res.send("PATCH")
+                if (!hasID) {
+                    throw Error("PATCH method is not allowed for " + name + " because it doesn't have an id")
+                }
+
+                app.patch(endpoint_name + "/:id", (req, res) => {
+                    const id: number = +req.params.id
+                    let jsonFile = JsonFileService.readJsonFile(path)
+                    let body = req.body
+                    let object_for_datacheck = new object_class({}).object_for_datacheck
+
+                    jsonFile.forEach((object: any) => {
+                        if (object["id"] == id) {
+                            for (let property in body) {
+                                if (typeof body[property] != typeof object_for_datacheck[property]) {
+                                    ErrorUtils.jsonThrow("The property " + property + " is not of the type " + typeof new object_class({}).object_for_datacheck[property], res)
+                                    return
+                                }
+
+                                object[property] = body[property]
+                            }
+
+                            JsonFileService.writeJsonFile(path, jsonFile)
+                            res.json(object)
+                            return
+                        }
+                    })
                 })
                 break;
         

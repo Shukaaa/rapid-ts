@@ -5,12 +5,18 @@ import bodyParser from "body-parser";
 import {JsonFileService} from "./services/JsonFileService";
 import {IdStore} from "./stores/IdStore";
 
-export class RapidServer {
-    app: Express = express();
-    server: any;
-    name: string = "";
+interface EndpointHTML {
+    methods: string[],
+    name: string,
+}
 
-    constructor() {
+export class RapidServer {
+    private app: Express = express();
+    private server: any;
+    private hasBeenStarted: boolean = false;
+    private name: string = "";
+
+    public start() {
         const config_data = JsonFileService.readJsonFile("./config.json");
 
         this.app.use(bodyParser.json())
@@ -41,7 +47,7 @@ export class RapidServer {
             throw Error("Endpoints couldn't be found inside the config.json")
         }
 
-        let endpoint_names: string[] = []
+        let endpoints_for_html: EndpointHTML[] = []
         for (let endpoint of endpoints) {
             IdStore.get(endpoint["name"])
 
@@ -50,16 +56,22 @@ export class RapidServer {
                 throw Error("Endpoint name couldn't be found inside one of the endpoints in the config.json")
             }
 
-            endpoint_names.push(endpoint_name)
+            let endpoint_for_html: EndpointHTML = {
+                methods: [],
+                name: endpoint_name
+            }
 
             if (!JsonFileService.exists(`./storage/${endpoint_name}.json`)) {
-                JsonFileService.writeJsonFile(`./storage/${endpoint_name}.json`, {data: []})
+                JsonFileService.writeJsonFile(`./storage/${endpoint_name}.json`, [])
             }
 
             const endpoint_methods = endpoint["methods"]
             if (endpoint_methods == undefined) {
                 throw Error("Endpoint methods couldn't be found inside the endpoint " + endpoint_name)
             }
+
+            endpoint_for_html.methods = endpoint_methods
+            endpoints_for_html.push(endpoint_for_html)
 
             const object_name = endpoint["object"]
             if (object_name == undefined) {
@@ -82,8 +94,9 @@ export class RapidServer {
             }
         }
 
-        this.createStartPage(prefix, endpoint_names, this.name)
+        this.createStartPage(prefix, this.name, endpoints_for_html)
         this.server = this.listen(port, this.name, prefix)
+        this.hasBeenStarted = true
     }
 
     private listen(port: number, api_name: string, prefix: string) {
@@ -92,29 +105,75 @@ export class RapidServer {
         });
     }
 
-    private createStartPage(prefix: string, endpoint_names: string[], api_name: string) {
+    private createStartPage(prefix: string, api_name: string, final: EndpointHTML[]) {
         this.app.get(prefix, (req, res) => {
             res.send(`
                 <head>
                     <style>
-                        body {
-                            font-family: sans-serif;
+                        body { font-family: sans-serif; }
+                        h2 {  margin-bottom: 0; }
+                        ul, h1 { margin-top: 0; }
+                        li { padding: 5px; }
+                        main {
+                            position: absolute;
+                            top: 50%;
+                            left: 50%;
+                            transform: translate(-50%, -50%);
+                            padding: 20px;
+                            border: 1px solid #333;
+                            background-color: #f5f5f5;
+                            border-radius: 10px;
                         }
                     </style>
                     <title>${api_name}</title>
                 </head>
-                <h1>${api_name} is running!</h1>
-                <p>created by: <a href="https://github.com/Shukaaa/rapid-ts">RAPID-ts</a></p>
-                
-                <h2>Endpoints</h2>
-                <ul>
-                    ${endpoint_names.map(endpoint => `<li><a href="${prefix}/${endpoint}">${prefix}/${endpoint}</a></li>`).join("\n")}
-                </ul>`)
+                <body>
+                    <main>
+                        <h1>${api_name} is running!</h1>
+                        <p>created by: <a href="https://github.com/Shukaaa/rapid-ts">RAPID-ts</a></p>
+                        
+                        <h2>Endpoints</h2>
+                        <ul>
+                            ${final.map(endpoint => `<li><a href="${prefix}/${endpoint.name}">${prefix}/${endpoint.name}</a> ${
+                                endpoint.methods.map(method => {
+                                    switch (method) {
+                                        case "GET":
+                                            return `<img src="https://img.shields.io/badge/-GET-brightgreen" alt="GET">`
+                                        case "POST":
+                                            return `<img src="https://img.shields.io/badge/-POST-yellow" alt="POST">`
+                                        case "PUT":
+                                            return `<img src="https://img.shields.io/badge/-PUT-blue" alt="PUT">`
+                                        case "DELETE":
+                                            return `<img src="https://img.shields.io/badge/-DELETE-red" alt="DELETE">`
+                                        case "PATCH":
+                                            return `<img src="https://img.shields.io/badge/-PATCH-purple" alt="PATCH">`
+                                        default:
+                                            return ""
+                                    }
+                                }).join(" ")
+                            }</li>`).join("\n")}
+                        </ul>
+                    </main>
+                </body>`)
         });
     }
 
     public close() {
+        if (!this.hasBeenStarted) {
+            throw Error("The server hasn't been started yet!")
+        }
+
         console.log(`🪐 [${this.name}]: Server is closing...`)
         this.server.close()
+    }
+
+    public restart() {
+        if (!this.hasBeenStarted) {
+            throw Error("The server hasn't been started yet!")
+        }
+
+        console.log(`🪐 [${this.name}]: Server has been restarted!`)
+        this.server.close()
+        this.start()
     }
 }
