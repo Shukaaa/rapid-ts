@@ -2,6 +2,10 @@
 
 Rapid-ts is a project that allows you to create a REST API based on simple JSON configurations. This API stores its data in JSON files.
 
+**Note: Rapid-ts is intended to be used as a test API for development purposes only. It is not recommended for building large-scale, production-ready, or secure APIs.**
+
+A separate implementation is currently in development to serve as a simple Mock API, providing more advanced mocking and simulation capabilities.
+
 ## Features
 
 - Easy Configuration: Rapid-ts enables developers to set up a REST API quickly and easily by using simple JSON configurations.
