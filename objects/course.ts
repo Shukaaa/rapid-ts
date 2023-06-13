@@ -14,6 +14,7 @@ export class course {
     // This is used to create the object
     constructor(course: CourseInterface) {
         this.object.id = course.id
-        this.object.name = course.name
+        // for optional body properties, check if they are undefined and set default values
+        this.object.name = course.name ? course.name : ""
     }
 }

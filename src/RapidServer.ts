@@ -4,6 +4,7 @@ import {GenerateEndpointUtils} from './utils/GenerateEndpointUtils';
 import bodyParser from "body-parser";
 import {JsonFileService} from "./services/JsonFileService";
 import {IdStore} from "./stores/IdStore";
+import { Endpoint } from './types/Endpoint';
 
 interface EndpointHTML {
     methods: string[],
