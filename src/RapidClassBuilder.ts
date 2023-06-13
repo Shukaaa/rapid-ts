@@ -4,8 +4,11 @@ export function getRapidObjectClass(object: object, constructor: (data: object) 
         object: object = {}
 
         constructor(data: object) {
-            constructor.call(this, data);
-            this.object = data;
+            if (Object.keys(data).length != 0) {
+                constructor.call(this, data);
+            }
+
+            this.object = data
         }
     }
 }
