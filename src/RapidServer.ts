@@ -84,9 +84,15 @@ export class RapidServer {
                 throw Error("Object class with the name " + object_name + " couldn't be found inside the api-objects.ts")
             }
 
+            let id = new object_class({}).object_for_datacheck.id
+
             const hasId = endpoint["hasId"]
             if (hasId == undefined) {
                 throw Error("hasId couldn't be found inside the endpoint " + endpoint_name)
+            }
+
+            if (hasId && id == undefined) {
+                throw Error("Id couldn't be found inside the object " + object_name)
             }
 
             for (let method of endpoint_methods) {
