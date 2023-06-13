@@ -1,9 +1,9 @@
 {
   "name": "@rapid-ts/rapid",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "(R)EST (A)PI (P)rovisioning and (I)ntegration with JSON (D)ata",
-  "main": "lib/es5/src/RapidServer.js",
-  "module": "lib/es6/src/RapidServer.js",
+  "main": "lib/es5/index.js",
+  "module": "lib/es6/index.js",
   "sideEffects": false,
   "repository": {
     "type": "git",
@@ -29,5 +29,9 @@
   "author": "shukaa",
   "license": "MIT",
   "bugs": "https://github.com/Shukaaa/rapid-ts/issues",
-  "homepage": "https://github.com/Shukaaa/rapid-ts#readme"
+  "homepage": "https://github.com/Shukaaa/rapid-ts#readme",
+  "dependencies": {
+    "body-parser": "^1.20.2",
+    "express": "^4.18.2"
+  }
 }

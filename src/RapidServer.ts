@@ -1,9 +1,9 @@
 import express, {Express} from 'express';
-import {objects} from '../objects/api-objects';
 import {GenerateEndpointUtils} from './utils/GenerateEndpointUtils';
 import bodyParser from "body-parser";
 import {JsonFileService} from "./services/JsonFileService";
 import {IdStore} from "./stores/IdStore";
+import fs from "fs";
 
 interface EndpointHTML {
     methods: string[],
@@ -15,9 +15,29 @@ export class RapidServer {
     private server: any;
     private hasBeenStarted: boolean = false;
     private name: string = "";
+    private readonly config_path: string = "";
+    private readonly objects: object = {};
+
+    constructor(config_path: string, objects: object) {
+        if (!JsonFileService.exists(config_path)) {
+            throw Error("Config file couldn't be found")
+        }
+
+        if (objects == undefined) {
+            throw Error("Objects couldn't be found")
+        }
+
+        this.config_path = config_path.replace(/\\/g, "/")
+        this.objects = objects
+    }
 
     public start() {
-        const config_data = JsonFileService.readJsonFile("./config.json");
+        const config_data = JsonFileService.readJsonFile(this.config_path);
+
+        // check if storage folder exists
+        if (!JsonFileService.exists("./storage")) {
+            fs.mkdirSync("./storage")
+        }
 
         this.app.use(bodyParser.json())
         this.app.use(bodyParser.urlencoded({extended: false}))
@@ -79,7 +99,7 @@ export class RapidServer {
             }
 
             // @ts-ignore
-            const object_class = objects[object_name]
+            const object_class = this.objects[object_name]
             if (object_class == undefined) {
                 throw Error("Object class with the name " + object_name + " couldn't be found inside the api-objects.ts")
             }
