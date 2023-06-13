@@ -1,5 +1,5 @@
 node_modules
-dist
 .idea
+dist/lib
 storage/*.json
 storage/id

@@ -1,0 +1,33 @@
+{
+  "name": "@rapid-ts/rapid",
+  "version": "0.0.1",
+  "description": "(R)EST (A)PI (P)rovisioning and (I)ntegration with JSON (D)ata",
+  "main": "lib/es5/src/RapidServer.js",
+  "module": "lib/es6/src/RapidServer.js",
+  "sideEffects": false,
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Shukaaa/rapid-ts.git"
+  },
+  "files": [
+    "lib",
+    "package.json",
+    "LICENSE",
+    "README.md"
+  ],
+  "keywords": [
+    "rapid",
+    "rapid-ts",
+    "rapid-api",
+    "api",
+    "json",
+    "json-api",
+    "mock-api",
+    "ts",
+    "typescript"
+  ],
+  "author": "shukaa",
+  "license": "MIT",
+  "bugs": "https://github.com/Shukaaa/rapid-ts/issues",
+  "homepage": "https://github.com/Shukaaa/rapid-ts#readme"
+}
