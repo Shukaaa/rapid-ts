@@ -22,8 +22,8 @@ npm install @rapid-api/rapid-ts
 Create a configuration file named "config.rapid.json". In this file, you can define information about your API. The properties in the JSON file have the following meanings:
 
 - `"name"`: The name of your API. This will be used for identification purposes.
-- `"port"`: The port number on which your API will listen for incoming requests.
-- `"prefix"`: The URL prefix to be added before the API endpoints. For example, if the prefix is "/api", then the endpoint "test" will be accessible via "/api/test".
+- `"port"`: The port number on which your API will listen for incoming requests. (default: 3000)
+- `"prefix"`: The URL prefix to be added before the API endpoints. For example, if the prefix is "/api", then the endpoint "test" will be accessible via "/api/test". (default: /api/v1)
 - `"endpoints"`: An array containing the definitions of your API endpoints.
 
 Each endpoint definition within the `"endpoints"` array should have the following properties:
@@ -45,6 +45,7 @@ Here is an example content of the "config.rapid.json" file:
             "name": "students",
             "methods": [
                 "GET",
+                "GET_BY_ID",
                 "POST",
                 "PUT",
                 "PATCH",
