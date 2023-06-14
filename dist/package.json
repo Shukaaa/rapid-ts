@@ -1,6 +1,6 @@
 {
   "name": "@rapid-api/rapid-ts",
-  "version": "0.0.3",
+  "version": "0.0.6",
   "description": "(R)EST (A)PI (P)rovisioning and (I)ntegration with JSON (D)ata",
   "main": "lib/es5/index.js",
   "module": "lib/es6/index.js",
@@ -12,7 +12,6 @@
   "files": [
     "lib",
     "package.json",
-    "LICENSE",
     "README.md"
   ],
   "keywords": [
@@ -24,7 +23,16 @@
     "json-api",
     "mock-api",
     "ts",
-    "typescript"
+    "typescript",
+    "javascript",
+    "js",
+    "rest",
+    "rest-api",
+    "restful",
+    "restful-api",
+    "rest-api-mock",
+    "rest-api-mocking",
+    "rest-api-mock-server"
   ],
   "author": "shukaa",
   "license": "MIT",
