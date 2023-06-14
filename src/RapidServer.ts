@@ -52,8 +52,8 @@ export class RapidServer {
 
         let prefix = config_data["prefix"]
         if (prefix == undefined) {
-            console.log("Prefix couldn't be found inside the config.json, so it will be set to nothing")
-            prefix = ""
+            console.log("Prefix couldn't be found inside the config.json, so it will be set to api/v1/")
+            prefix = "/api/v1"
         }
 
         const name = config_data["name"]
