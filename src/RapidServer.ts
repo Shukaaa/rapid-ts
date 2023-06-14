@@ -231,16 +231,16 @@ export class RapidServer {
                 this.app.get(this.prefix + "/" + endpoint.name, func)
                 break
             case "POST":
-                this.app.post(this.prefix + this.name + endpoint.name, func)
+                this.app.post(this.prefix + "/" + endpoint.name, func)
                 break
             case "PUT":
-                this.app.put(this.prefix + this.name + endpoint.name, func)
+                this.app.put(this.prefix + "/" + endpoint.name, func)
                 break
             case "PATCH":
-                this.app.patch(this.prefix + this.name + endpoint.name, func)
+                this.app.patch(this.prefix + "/" + endpoint.name, func)
                 break
             case "DELETE":
-                this.app.delete(this.prefix + this.name + endpoint.name, func)
+                this.app.delete(this.prefix + "/" + endpoint.name, func)
                 break
         }
 

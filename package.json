@@ -3,9 +3,6 @@
   "version": "0.0.1",
   "description": "(R)EST (A)PI (P)rovisioning and (I)ntegration with JSON (D)ata",
   "scripts": {
-    "build": "npx tsc",
-    "start": "node dist/index.js",
-    "dev": "concurrently \"npx tsc --watch\" \"nodemon -q dist/index.js\"",
     "compile": "tsc && tsc --build tsconfig.es5.json"
   },
   "author": "shukaaa",
