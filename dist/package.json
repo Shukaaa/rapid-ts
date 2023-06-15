@@ -1,6 +1,6 @@
 {
   "name": "@rapid-api/rapid-ts",
-  "version": "0.0.6",
+  "version": "0.0.8",
   "description": "(R)EST (A)PI (P)rovisioning and (I)ntegration with JSON (D)ata",
   "main": "lib/es5/index.js",
   "module": "lib/es6/index.js",

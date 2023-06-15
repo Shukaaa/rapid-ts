@@ -1,6 +1,5 @@
 {
   "name": "rapid-ts",
-  "version": "0.0.1",
   "description": "(R)EST (A)PI (P)rovisioning and (I)ntegration with JSON (D)ata",
   "scripts": {
     "compile": "tsc && tsc --build tsconfig.es5.json"
