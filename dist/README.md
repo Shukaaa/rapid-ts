@@ -3,6 +3,8 @@
 > **WARNING:**
 > The project is new and under permanent development and may still be buggy. Please report any issues you find.
 
+![top language badge](https://img.shields.io/github/languages/top/shukaaa/rapid-ts) ![npm (scoped)](https://img.shields.io/npm/v/@rapid-api/rapid-ts) ![GitHub commit activity](https://img.shields.io/github/commit-activity/w/shukaaa/rapid-ts)
+
 ## Description
 
 The "@rapid-api/rapid-ts" package allows you to quickly create a REST API based on JSON configurations and small js / ts. The API stores data locally in a folder. It is designed to generate small, performant, and stable APIs for testing or as mock APIs. Please note that this solution is not intended to be a 100% secure or production-ready API. It is well-suited for private projects.
