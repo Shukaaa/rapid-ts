@@ -41,12 +41,8 @@ export class GenerateEndpointUtils {
                     let body = req.body
                     let object_for_datacheck = new object_class({}).object_for_datacheck
 
-                    // Check if the datatype are correct
-                    for (let property in body) {
-                        if (typeof body[property] != typeof object_for_datacheck[property]) {
-                            ErrorUtils.jsonThrow("The property " + property + " is not of the type " + typeof new object_class({}).object_for_datacheck[property], res)
-                            return
-                        }
+                    if (!this.datatypeChecks(body, object_class, object_for_datacheck, res)) {
+                        return;
                     }
 
                     let object = new object_class(body)
@@ -58,12 +54,8 @@ export class GenerateEndpointUtils {
                         object.object.id = id + 1
                     }
 
-                    // Check if the object has all the properties
-                    for (let property in object.object) {
-                        if (object.object[property] == undefined) {
-                            ErrorUtils.jsonThrow("The property " + property + " is undefined", res)
-                            return
-                        }
+                    if (!this.undefinedChecks(object, object_for_datacheck, res)) {
+                        return;
                     }
 
                     jsonFile.push(object.object)
@@ -84,23 +76,15 @@ export class GenerateEndpointUtils {
                     let body = req.body
                     let object_for_datacheck = new object_class({}).object_for_datacheck
 
-                    // Check if the datatype are correct
-                    for (let property in body) {
-                        if (typeof body[property] != typeof object_for_datacheck[property]) {
-                            ErrorUtils.jsonThrow("The property " + property + " is not of the type " + typeof new object_class({}).object_for_datacheck[property], res)
-                            return
-                        }
+                    if (!this.datatypeChecks(body, object_class, object_for_datacheck, res)) {
+                        return;
                     }
 
                     let object = new object_class(body)
                     object.object.id = id
 
-                    // Check if the object has all the properties
-                    for (let property in object.object) {
-                        if (object.object[property] == undefined) {
-                            ErrorUtils.jsonThrow("The property " + property + " is undefined", res)
-                            return
-                        }
+                    if (!this.undefinedChecks(object, object_for_datacheck, res)) {
+                        return;
                     }
 
                     // replace the object with the same id
@@ -172,5 +156,34 @@ export class GenerateEndpointUtils {
             default:
                 throw new Error("Unknown method " + method + " in config file")
         }
+    }
+
+    private static undefinedChecks(object: any, object_for_datacheck: any, res: any) {
+        for (let property in object.object) {
+            if (object.object[property] == undefined) {
+                ErrorUtils.jsonThrow("The property " + property + " is undefined", res)
+                return false
+            }
+        }
+
+        for (const key in object_for_datacheck) {
+            if (!object.object.hasOwnProperty(key)) {
+                ErrorUtils.jsonThrow("The property " + key + " is not defined", res)
+                return false
+            }
+        }
+
+        return true
+    }
+
+    private static datatypeChecks(body: any, object_class: any, object_for_datacheck: any, res: any) {
+        for (let property in body) {
+            if (typeof body[property] != typeof object_for_datacheck[property]) {
+                ErrorUtils.jsonThrow("The property " + property + " is not of the type " + typeof new object_class({}).object_for_datacheck[property], res)
+                return false
+            }
+        }
+
+        return true
     }
 }

@@ -226,21 +226,22 @@ export class RapidServer {
     }
 
     public addExpressEndpoint(endpoint: Endpoint, func: (req: Express.Request, res: Express.Response) => void) {
+        let path = this.prefix + "/" + endpoint.name
         switch (endpoint.method) {
             case "GET":
-                this.app.get(this.prefix + "/" + endpoint.name, func)
+                this.app.get(path, func)
                 break
             case "POST":
-                this.app.post(this.prefix + "/" + endpoint.name, func)
+                this.app.post(path, func)
                 break
             case "PUT":
-                this.app.put(this.prefix + "/" + endpoint.name, func)
+                this.app.put(path, func)
                 break
             case "PATCH":
-                this.app.patch(this.prefix + "/" + endpoint.name, func)
+                this.app.patch(path, func)
                 break
             case "DELETE":
-                this.app.delete(this.prefix + "/" + endpoint.name, func)
+                this.app.delete(path, func)
                 break
         }
 
