@@ -227,24 +227,14 @@ export class RapidServer {
 
     public addExpressEndpoint(endpoint: Endpoint, func: (req: Express.Request, res: Express.Response) => void) {
         let path = this.prefix + "/" + endpoint.name
-        switch (endpoint.method) {
-            case "GET":
-                this.app.get(path, func)
-                break
-            case "POST":
-                this.app.post(path, func)
-                break
-            case "PUT":
-                this.app.put(path, func)
-                break
-            case "PATCH":
-                this.app.patch(path, func)
-                break
-            case "DELETE":
-                this.app.delete(path, func)
-                break
+
+        // @ts-ignore
+        if (!(typeof this.app[endpoint.method.toLowerCase()] === 'function')) {
+            throw Error("The method " + endpoint.method + " is not a valid method!");
         }
 
+        // @ts-ignore
+        this.app[endpoint.method.toLowerCase()](path, func);
         this.endpointCheck(endpoint, endpoint.method)
     }
 
