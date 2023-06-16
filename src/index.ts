@@ -1,2 +1,2 @@
-export { RapidServer } from "./RapidServer"
-export { getRapidObjectClass } from "./RapidClassBuilder"
+export { RapidServer } from "./server/RapidServer"
+export { getRapidObjectClass } from "./builder/RapidClassBuilder"
