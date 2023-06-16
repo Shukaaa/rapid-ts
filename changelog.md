@@ -1,4 +1,5 @@
 ### 0.0.9
+- added build scripts
 - code refactoring
 - readme updates
 

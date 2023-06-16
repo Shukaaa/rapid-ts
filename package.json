@@ -2,13 +2,15 @@
   "name": "rapid-ts",
   "description": "(R)EST (A)PI (P)rovisioning and (I)ntegration with JSON (D)ata",
   "scripts": {
-    "compile": "tsc && tsc --build tsconfig.es5.json"
+    "compile": "tsc && tsc --build tsconfig.es5.json && node helper/buildHelper.js",
+    "publish": "npm run compile && node helper/increaseVersion.js && cd ./dist && npm publish"
   },
   "author": "shukaaa",
   "license": "ISC",
   "dependencies": {
     "body-parser": "^1.20.2",
-    "express": "^4.18.2"
+    "express": "^4.18.2",
+    "fs-extra": "^11.1.1"
   },
   "devDependencies": {
     "@types/express": "^4.17.17",
