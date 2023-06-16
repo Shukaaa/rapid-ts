@@ -2,7 +2,8 @@
   "name": "rapid-ts",
   "description": "(R)EST (A)PI (P)rovisioning and (I)ntegration with JSON (D)ata",
   "scripts": {
-    "compile": "tsc && tsc --build tsconfig.es5.json && node helper/buildHelper.js",
+    "minify": "",
+    "compile": "node helper/buildHelper.js && tsc --removeComments && tsc --build tsconfig.es5.json && npm run minify",
     "publish": "npm run compile && node helper/increaseVersion.js && cd ./dist && npm publish"
   },
   "author": "shukaaa",
