@@ -1,3 +1,6 @@
+### 1.0.0
+- readme yaay
+
 ### 0.0.9
 - added build scripts
 - code refactoring
