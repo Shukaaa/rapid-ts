@@ -1,4 +1,5 @@
 node_modules
 .idea
+storage
 dist/lib
 dist/README.md

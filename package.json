@@ -4,10 +4,11 @@
   "scripts": {
     "minify": "",
     "compile": "node helper/buildHelper.js && tsc --removeComments && tsc --build tsconfig.es5.json && npm run minify",
-    "publish": "npm run compile && node helper/increaseVersion.js && cd ./dist && npm publish"
+    "publish": "npm run compile && node helper/increaseVersion.js && cd ./dist && npm publish",
+    "setup-example": "npm run compile && cd dist && npm link && cd ../example && npm link @rapid-api/rapid-ts && node index.js"
   },
   "author": "shukaaa",
-  "license": "ISC",
+  "license": "MIT",
   "dependencies": {
     "body-parser": "^1.20.2",
     "express": "^4.18.2",
