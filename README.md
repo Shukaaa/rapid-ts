@@ -3,7 +3,7 @@
 > **WARNING:**
 > The project is new and under permanent development and may still be buggy. Please report any issues you find.
 
-![top language badge](https://img.shields.io/github/languages/top/shukaaa/rapid-ts) ![npm (scoped)](https://img.shields.io/npm/v/@rapid-api/rapid-ts) ![GitHub commit activity](https://img.shields.io/github/commit-activity/w/shukaaa/rapid-ts)
+![top language badge](https://img.shields.io/github/languages/top/shukaaa/rapid-ts) ![npm (scoped)](https://img.shields.io/npm/v/@rapid-api/rapid-ts) ![GitHub commit activity](https://img.shields.io/github/commit-activity/w/shukaaa/rapid-ts) ![npm downloads](https://img.shields.io/npm/dm/@rapid-api/rapid-ts)
 
 ## Description
 
