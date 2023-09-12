@@ -1,13 +1,10 @@
 # 🪐 rapid-ts 🪐
 
-> **WARNING:**
-> The project is new and under permanent development and may still be buggy. Please report any issues you find.
-
 ![top language badge](https://img.shields.io/github/languages/top/shukaaa/rapid-ts) ![npm (scoped)](https://img.shields.io/npm/v/@rapid-api/rapid-ts) ![GitHub commit activity](https://img.shields.io/github/commit-activity/w/shukaaa/rapid-ts) ![npm downloads](https://img.shields.io/npm/dm/@rapid-api/rapid-ts)
 
 ## Description
 
-The "@rapid-api/rapid-ts" package allows you to quickly create a REST API based on JSON configurations and small js / ts. The API stores data locally in a folder. It is designed to generate small, performant, and stable APIs for testing or as mock APIs. Please note that this solution is not intended to be a 100% secure or production-ready API. It is well-suited for private projects.
+The "@rapid-api/rapid-ts" package allows you to quickly create a REST API with small js / ts. The API stores data locally in a folder. It is designed to generate small, and performant APIs for testing or as mock APIs. Please note that this solution is not intended to be a 100% secure or production-use API. It is well-suited for very small or private projects.
 
 ## Installation
 
@@ -19,33 +16,19 @@ npm install @rapid-api/rapid-ts
 
 ## Usage
 
-### Step 1: Create Configuration File
+### Step 1: Configuration Object
 
-Create a configuration file named "config.rapid.json". In this file, you can define information about your API. The properties in the JSON file have the following meanings:
+Here is an example content of the config object:
 
-- `"name"`: The name of your API. This will be used for identification purposes.
-- `"port"`: The port number on which your API will listen for incoming requests. (default: 3000)
-- `"prefix"`: The URL prefix to be added before the API endpoints. For example, if the prefix is "/api", then the endpoint "test" will be accessible via "/api/test". (default: /api/v1)
-- `"endpoints"`: An array containing the definitions of your API endpoints.
-
-Each endpoint definition within the `"endpoints"` array should have the following properties:
-
-- `"name"`: The name of the endpoint. This will be used for identification purposes.
-- `"methods"`: An array of HTTP methods that the endpoint supports (e.g., "GET", "POST", "PUT", etc.).
-- `"object"`: The name of the rapid object associated with the endpoint. This specifies the structure of the data for that endpoint.
-- `"hasId"`: A boolean value indicating whether the endpoint's objects have an ID property.
-
-Here is an example content of the "config.rapid.json" file:
-
-```json
-{
-    "name": "students-api",
-    "port": 3000,
-    "prefix": "/api",
-    "endpoints": [
+```js
+const options = {
+    name: "students-api", // The name of your API. This will be used for identification purposes
+    port: 3000, // The port number on which your API will listen for incoming requests (default: 3000)
+    prefix: "/api", // The URL prefix to be added before the API endpoints. If the prefix is "/api", then the endpoint "test" will be accessible via "/api/test"
+    endpoints: [ // An array containing the definitions of your API endpoints
         {
-            "name": "students",
-            "methods": [
+            name: "students", // The name of the endpoint. This will be used for identification purposes.
+            methods: [ // An array of HTTP methods that the endpoint supports ("GET", "GET_BY_ID", "POST", "PUT", "PATCH", "DELETE").
                 "GET",
                 "GET_BY_ID",
                 "POST",
@@ -53,35 +36,45 @@ Here is an example content of the "config.rapid.json" file:
                 "PATCH",
                 "DELETE"
             ],
-            "object": "student",
-            "hasId": true
+            object: "student", // The name of the rapid object associated with the endpoint. This specifies the structure of the data for that endpoint.
+            hasId: true // A boolean value indicating whether the endpoint's objects have an ID property.
         }
     ]
 }
 ```
 
-### Step 2: JavaScript Code
+### Step 2: Object Structure
 
-In your JavaScript code, import the necessary modules and define your rapid objects and server. The code snippet below demonstrates how to use the package:
+Here is an example content of the object structure:
 
-```javascript
-import { getRapidObjectClass, RapidServer } from '@rapid-api/rapid-ts';
+```js
+import { getRapidObjectClass } from '@rapid-api/rapid-ts';
 
-// Define the rapid objects based on your configuration
 const rapid_objects = {
-    student: getRapidObjectClass({
-        id: 0,
-        name: "John Doe",
-        age: 20,
-        isMale: true,
-        subjects: ["Math", "Science", "History"]
+    student: getRapidObjectClass({ // The name of the object you defined in the config object (in this case, "student")
+        id: 0, // The ID of the object. This is required if the endpoint hasId is set to true.
+        name: "John Doe", // A string property
+        age: 20, // A number property
+        isMale: true, // A boolean property
+        subjects: [ // An array property
+            "Math",
+            "Science",
+            "History"
+        ]
     })
-};
+}
+```
 
-// Create a new instance of the RapidServer with the configuration file and rapid objects
-const rapid_server = new RapidServer("./config.rapid.json", rapid_objects);
+> You can't distinguish between float and integer values, because only JavaScript's datatypes are supported.
 
-// Start the server
+### Step 3: Create RapidServer Instance
+
+Here is an example code snippet:
+
+```js
+import { RapidServer, getRapidObjectClass } from '@rapid-api/rapid-ts';
+
+const rapid_server = new RapidServer(options, rapid_objects);
 rapid_server.start();
 ```
 
@@ -89,27 +82,22 @@ rapid_server.start();
 You can manipulate the data during POST, PUT, or PATCH requests by providing a callback function as the second argument to the getRapidObjectClass function. This callback function will receive the data sent in the request, and you can perform any desired modifications or access the data within the function. Here's an updated example:
 
 ```javascript
-import { getRapidObjectClass, RapidServer } from '@rapid-api/rapid-ts';
-
-// Define the rapid objects based on your configuration
 const rapid_objects = {
-    student: getRapidObjectClass({
-        id: 0,
-        name: "John Doe",
-        age: 20,
-        isMale: true,
-        subjects: ["Math", "Science", "History"]
-    }, (data) => {
+    student: getRapidObjectClass({ // The name of the object you defined in the config object (in this case, "student")
+        id: 0, // The ID of the object. This is required if the endpoint hasId is set to true.
+        name: "John Doe", // A string property
+        age: 20, // A number property
+        isMale: true, // A boolean property
+        subjects: [ // An array property
+            "Math",
+            "Science",
+            "History"
+        ]
+    }, (data) => { // The callback function
         console.log("Received Data", data)
         data.name = data.name.toUpperCase();
     })
-};
-
-// Create a new instance of the RapidServer with the configuration file and rapid objects
-const rapid_server = new RapidServer("./config.rapid.json", rapid_objects);
-
-// Start the server
-rapid_server.start();
+}
 ```
 
 ### Adding Endpoints at Runtime
@@ -118,18 +106,16 @@ The "@rapid-api/rapid-ts" package provides two methods to add endpoints dynamica
 
 #### Method 1: addRapidEndpoint()
 
-The `addRapidEndpoint()` method allows you to add endpoints based on the same schema as defined in the JSON configuration file. Here's an example code snippet:
+The `addRapidEndpoint()`:
 
 ```javascript
-const { getRapidObjectClass } = require('@rapid-api/rapid-ts');
-
 rapid_server.addRapidEndpoint({
     name: "dynamicRapid",
     methods: [
         "GET",
         "POST"
     ],
-    object: "dynamic",
+    object: "dynamic", // The name of the object is unecessary, because the object is defined in the second argument
     hasId: false
 }, getRapidObjectClass({
     text: "text"

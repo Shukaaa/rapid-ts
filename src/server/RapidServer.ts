@@ -1,38 +1,36 @@
 import express, {Express} from 'express';
-import {GenerateEndpointUtils} from '../utils/GenerateEndpointUtils';
 import bodyParser from "body-parser";
-import {JsonFileService} from "../services/JsonFileService";
-import {IdStore} from "../stores/IdStore";
 import fs from "fs";
-import {EndpointHTML} from "../interfaces/IEndpointHtml";
-import {Endpoint} from "../interfaces/IEndpoint";
-import {RapidEndpoint} from "../interfaces/IRapidEndpoint";
-import {buildHtml} from "../builder/HtmlBuilder";
+import {GenerateEndpointUtils} from '../utils/generate-endpoint.utils';
+import {JsonFileService} from "../services/json-file.service";
+import {IdStore} from "../stores/id.store";
+import {ExpressEndpoint} from "../types/express-endpoint";
+import {RapidEndpoint} from "../types/rapid-endpoints";
+import {buildHtml} from "../builder/html.builder";
+import {RapidConfig} from "../types/rapid-config";
+import {HtmlEndpoint} from "../types/html-endpoint";
 
 export class RapidServer {
     private app: Express = express();
     private server: any;
     private hasBeenStarted: boolean = false;
-    private endpoints_for_html: EndpointHTML[] = [];
+    private endpoints_for_html: HtmlEndpoint[] = [];
     private readonly name: string = "";
     private readonly prefix: string = "";
     private readonly port: number = 0;
     private readonly endpoints: any[] = [];
     private readonly objects: object = {};
 
-    constructor(config_path: string, objects: object) {
-        if (!JsonFileService.exists(config_path)) {
-            throw Error("Config file couldn't be found")
+    constructor(config: RapidConfig, objects: object) {
+        if (config == undefined) {
+            throw Error("Config couldn't be found")
         }
 
         if (objects == undefined) {
             throw Error("Objects couldn't be found")
         }
 
-        config_path = config_path.replace(/\\/g, "/")
         this.objects = objects
-
-        const config_data = JsonFileService.readJsonFile(config_path);
 
         // check if storage folder exists
         if (!JsonFileService.exists("./storage")) {
@@ -44,29 +42,31 @@ export class RapidServer {
 
         IdStore.check()
 
-        let port = config_data["port"]
+        const port = config.port
         if (port == undefined) {
-            console.log("Port couldn't be found inside the config.json, so it will be set to 3000")
+            console.log("Port couldn't be found inside the config, so it will be set to 3000")
             this.port = 3000
+        } else {
+            this.port = port
         }
-        this.port = port
 
-        let prefix = config_data["prefix"]
+        const prefix = config.prefix
         if (prefix == undefined) {
             console.log("Prefix couldn't be found inside the config.json, so it will be set to api/v1/")
-            prefix = "/api/v1"
+            this.prefix = ""
+        } else {
+            this.prefix = prefix
         }
-        this.prefix = prefix
 
-        const name = config_data["name"]
+        const name = config.name
         if (name == undefined) {
-            throw Error("Api name couldn't be found inside the config.json")
+            throw Error("Api name couldn't be found inside the config")
         }
         this.name = name
 
-        const endpoints = config_data["endpoints"]
+        const endpoints = config.endpoints
         if (endpoints == undefined) {
-            throw Error("Endpoints couldn't be found inside the config.json")
+            throw Error("Endpoints couldn't be found inside the config")
         }
         this.endpoints = endpoints
     }
@@ -95,7 +95,7 @@ export class RapidServer {
             throw Error("Endpoint name couldn't be found inside one of the endpoints in the config.json")
         }
 
-        let endpoint_for_html: EndpointHTML = {
+        let endpoint_for_html: HtmlEndpoint = {
             methods: [],
             name: endpoint_name
         }
@@ -139,7 +139,7 @@ export class RapidServer {
         }
     }
 
-    private createStartPage(prefix: string, api_name: string, final: EndpointHTML[]) {
+    private createStartPage(prefix: string, api_name: string, final: HtmlEndpoint[]) {
         this.app.get(prefix, (req, res) => {
             res.send(buildHtml(api_name, final, prefix))
         });
@@ -165,7 +165,7 @@ export class RapidServer {
         this.start()
     }
 
-    public addExpressEndpoint(endpoint: Endpoint, func: (req: Express.Request, res: Express.Response) => void) {
+    public addExpressEndpoint(endpoint: ExpressEndpoint, func: (req: Express.Request, res: Express.Response) => void) {
         let path = this.prefix + "/" + endpoint.name
 
         // @ts-ignore
@@ -192,7 +192,7 @@ export class RapidServer {
         this.generateEndpoint(endpoint)
     }
 
-    private endpointCheck(endpoint: Endpoint, method: string) {
+    private endpointCheck(endpoint: ExpressEndpoint, method: string) {
         let endpoint_for_html = this.endpoints_for_html.find(e => e.name == endpoint.name);
         if (endpoint_for_html) {
             // check if the endpoint already has the GET method

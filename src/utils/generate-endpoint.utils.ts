@@ -1,7 +1,7 @@
 import { Express } from 'express';
-import {ErrorUtils} from "./ErrorUtils";
-import {IdStore} from "../stores/IdStore";
-import {JsonFileService} from "../services/JsonFileService";
+import {ErrorUtils} from "./error.utils";
+import {IdStore} from "../stores/id.store";
+import {JsonFileService} from "../services/json-file.service";
 
 export class GenerateEndpointUtils {
     public static buildEndpoint(method: string, app: Express, name: string, object_class: any, hasID: boolean, prefix: string) {
@@ -178,8 +178,13 @@ export class GenerateEndpointUtils {
 
     private static datatypeChecks(body: any, object_class: any, object_for_datacheck: any, res: any) {
         for (let property in body) {
+            if (new object_class({}).object_for_datacheck[property] == undefined) {
+                ErrorUtils.jsonThrow("The property " + property + " is not defined", res)
+                return false
+            }
+
             if (typeof body[property] != typeof object_for_datacheck[property]) {
-                ErrorUtils.jsonThrow("The property " + property + " is not of the type " + typeof new object_class({}).object_for_datacheck[property], res)
+                ErrorUtils.jsonThrow("The property " + property + " needs to be type of " + typeof new object_class({}).object_for_datacheck[property], res)
                 return false
             }
         }

@@ -1,6 +1,6 @@
-import {EndpointHTML} from "../interfaces/IEndpointHtml";
+import {HtmlEndpoint} from "../types/html-endpoint";
 
-export function buildHtml(api_name: string, endpoints: EndpointHTML[], prefix: string) {
+export function buildHtml(api_name: string, endpoints: HtmlEndpoint[], prefix: string) {
     return `
                 <head>
                     <style>
@@ -34,7 +34,7 @@ export function buildHtml(api_name: string, endpoints: EndpointHTML[], prefix: s
                 </body>`
 }
 
-function createEndpoints(final: EndpointHTML[], prefix: string) {
+function createEndpoints(final: HtmlEndpoint[], prefix: string) {
     return final.map(endpoint => `<li><a href="${prefix}/${endpoint.name}">${prefix}/${endpoint.name}</a> ${
         endpoint.methods.map(method => {
             switch (method) {

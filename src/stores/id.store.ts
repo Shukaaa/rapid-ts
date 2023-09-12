@@ -1,4 +1,4 @@
-import {JsonFileService} from "../services/JsonFileService";
+import {JsonFileService} from "../services/json-file.service";
 import fs from "fs";
 
 export class IdStore {
