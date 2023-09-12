@@ -1,6 +1,6 @@
 {
   "name": "@rapid-api/rapid-ts",
-  "version": "0.0.9",
+  "version": "1.0.0",
   "description": "(R)EST (A)PI (P)rovisioning and (I)ntegration with JSON (D)ata",
   "main": "lib/es5/index.js",
   "module": "lib/es6/index.js",
@@ -8,8 +8,7 @@
   "author": "shukaaa",
   "license": "MIT",
   "scripts": {
-    "compile": "node helper/buildHelper.js && tsc --removeComments && tsc --build tsconfig.es5.json",
-    "publish": "cd ./dist && npm publish"
+    "compile": "node helper/buildHelper.js && tsc --removeComments && tsc --build tsconfig.es5.json"
   },
   "dependencies": {
     "body-parser": "^1.20.2",
