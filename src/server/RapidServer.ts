@@ -9,6 +9,7 @@ import {RapidEndpoint} from "../types/rapid-endpoints";
 import {buildHtml} from "../builder/html.builder";
 import {RapidConfig} from "../types/rapid-config";
 import {HtmlEndpoint} from "../types/html-endpoint";
+import {OverviewPageThemes} from "../types/overview-page-config";
 
 export class RapidServer {
     private app: Express = express();
@@ -17,8 +18,10 @@ export class RapidServer {
     private endpoints_for_html: HtmlEndpoint[] = [];
     private readonly name: string = "";
     private readonly prefix: string = "";
-    private readonly port: number = 0;
+    private readonly port: number = 3000;
     private readonly endpoints: RapidEndpoint[] = [];
+    private readonly overviewPageEnable: boolean = true;
+    private readonly overviewPageTheme: OverviewPageThemes = "LIGHT";
     private readonly objects: object = {};
 
     constructor(config: RapidConfig, objects: object) {
@@ -43,19 +46,26 @@ export class RapidServer {
         IdStore.check()
 
         const port = config.port
-        if (port == undefined) {
-            console.log("Port couldn't be found inside the config, so it will be set to 3000")
-            this.port = 3000
-        } else {
+        if (port != undefined) {
             this.port = port
         }
 
         const prefix = config.prefix
-        if (prefix == undefined) {
-            console.log("Prefix couldn't be found inside the config.json, so it will be set to api/v1/")
-            this.prefix = ""
-        } else {
+        if (prefix != undefined) {
             this.prefix = prefix
+        }
+
+        const overviewPage = config.overviewPage
+        if (overviewPage != undefined) {
+            const enable = overviewPage.enable
+            if (enable != undefined) {
+                this.overviewPageEnable = enable
+            }
+
+            const theme = overviewPage.theme
+            if (theme != undefined) {
+                this.overviewPageTheme = theme
+            }
         }
 
         const name = config.name
@@ -76,7 +86,10 @@ export class RapidServer {
             this.generateEndpoint(endpoint)
         }
 
-        this.createStartPage(this.prefix, this.name, this.endpoints_for_html)
+        if (this.overviewPageEnable) {
+            this.createStartPage(this.prefix, this.name, this.endpoints_for_html, this.overviewPageTheme)
+        }
+
         this.server = this.listen(this.port, this.name, this.prefix)
         this.hasBeenStarted = true
     }
@@ -139,9 +152,9 @@ export class RapidServer {
         }
     }
 
-    private createStartPage(prefix: string, api_name: string, final: HtmlEndpoint[]) {
+    private createStartPage(prefix: string, api_name: string, final: HtmlEndpoint[], theme: OverviewPageThemes) {
         this.app.get(prefix, (req, res) => {
-            res.send(buildHtml(api_name, final, prefix))
+            res.send(buildHtml(api_name, final, prefix, theme))
         });
     }
 

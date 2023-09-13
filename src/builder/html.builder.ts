@@ -1,10 +1,44 @@
 import {HtmlEndpoint} from "../types/html-endpoint";
+import {OverviewPageThemes} from "../types/overview-page-config";
 
-export function buildHtml(api_name: string, endpoints: HtmlEndpoint[], prefix: string) {
+const themeMap = {
+    LIGHT: {
+        background: "#fff",
+        secondaryBackground: "#f5f5f5",
+        color: "#333",
+        borderColor: "#333",
+        linkColor: "#3174b5"
+    },
+    DARK: {
+        background: "#333",
+        secondaryBackground: "#444",
+        color: "#f5f5f5",
+        borderColor: "#f5f5f5",
+        linkColor: "#499ced"
+    }
+}
+
+export function buildHtml(api_name: string, endpoints: HtmlEndpoint[], prefix: string, theme: OverviewPageThemes) {
     return `
                 <head>
                     <style>
-                        body { font-family: sans-serif; }
+                        body {
+                            font-family: sans-serif; 
+                            background-color: ${themeMap[theme].background};
+                            color: ${themeMap[theme].color};
+                        }
+                        a {
+                            color: ${themeMap[theme].linkColor};
+                        }
+                        a:hover {
+                            color: ${themeMap[theme].linkColor};
+                        }
+                        a:visited {
+                            color: ${themeMap[theme].linkColor};
+                        }
+                        a:active {
+                            color: ${themeMap[theme].color};
+                        }
                         h2 {  margin-bottom: 0; }
                         ul, h1 { margin-top: 0; }
                         li { padding: 5px; }
@@ -14,9 +48,12 @@ export function buildHtml(api_name: string, endpoints: HtmlEndpoint[], prefix: s
                             left: 50%;
                             transform: translate(-50%, -50%);
                             padding: 20px;
-                            border: 1px solid #333;
-                            background-color: #f5f5f5;
-                            border-radius: 10px;
+                            border: 1px solid ${themeMap[theme].borderColor};
+                            background-color: ${themeMap[theme].secondaryBackground};
+                            border-radius: 5px;
+                        }
+                        img {
+                            vertical-align: bottom;
                         }
                     </style>
                     <title>${api_name}</title>
@@ -24,7 +61,7 @@ export function buildHtml(api_name: string, endpoints: HtmlEndpoint[], prefix: s
                 <body>
                     <main>
                         <h1>${api_name} is running!</h1>
-                        <p>created by: <a href="https://github.com/Shukaaa/rapid-ts">RAPID-ts</a></p>
+                        <p>created by: <a href="https://github.com/Shukaaa/rapid-ts">rapid-ts</a></p>
                         
                         <h2>Endpoints</h2>
                         <ul>
