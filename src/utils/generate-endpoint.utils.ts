@@ -25,7 +25,7 @@ export class GenerateEndpointUtils {
                     let jsonFile = JsonFileService.readJsonFile(path)
 
                     for(let i = 0; i < jsonFile.length; i++) {
-                        if (jsonFile[i]["id"] == id) {
+                        if (jsonFile[i]["id"] === id) {
                             res.json(jsonFile[i])
                             return
                         }
@@ -89,7 +89,7 @@ export class GenerateEndpointUtils {
 
                     // replace the object with the same id
                     for (let i = 0; i < jsonFile.length; i++) {
-                        if (jsonFile[i]["id"] == object.object.id) {
+                        if (jsonFile[i]["id"] === object.object.id) {
                             jsonFile[i] = object.object
                             JsonFileService.writeJsonFile(path, jsonFile)
 
@@ -110,7 +110,7 @@ export class GenerateEndpointUtils {
                     let jsonFile = JsonFileService.readJsonFile(path)
 
                     for(let i = 0; i < jsonFile.length; i++) {
-                        if (jsonFile[i]["id"] == id) {
+                        if (jsonFile[i]["id"] === id) {
                             jsonFile.splice(i, 1)
                             JsonFileService.writeJsonFile(path, jsonFile)
 
@@ -135,7 +135,7 @@ export class GenerateEndpointUtils {
                     let object_for_datacheck = new object_class({}).object_for_datacheck
 
                     jsonFile.forEach((object: any) => {
-                        if (object["id"] == id) {
+                        if (object["id"] === id) {
                             for (let property in body) {
                                 if (typeof body[property] != typeof object_for_datacheck[property]) {
                                     ErrorUtils.jsonThrow("The property " + property + " is not of the type " + typeof new object_class({}).object_for_datacheck[property], res)
@@ -160,7 +160,7 @@ export class GenerateEndpointUtils {
 
     private static undefinedChecks(object: any, object_for_datacheck: any, res: any) {
         for (let property in object.object) {
-            if (object.object[property] == undefined) {
+            if (object.object[property] === undefined) {
                 ErrorUtils.jsonThrow("The property " + property + " is undefined", res)
                 return false
             }
@@ -178,7 +178,7 @@ export class GenerateEndpointUtils {
 
     private static datatypeChecks(body: any, object_class: any, object_for_datacheck: any, res: any) {
         for (let property in body) {
-            if (new object_class({}).object_for_datacheck[property] == undefined) {
+            if (new object_class({}).object_for_datacheck[property] === undefined) {
                 ErrorUtils.jsonThrow("The property " + property + " is not defined", res)
                 return false
             }

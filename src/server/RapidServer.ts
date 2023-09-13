@@ -25,11 +25,11 @@ export class RapidServer {
     private readonly objects: object = {};
 
     constructor(config: RapidConfig, objects: object) {
-        if (config == undefined) {
+        if (config === undefined) {
             throw Error("Config couldn't be found")
         }
 
-        if (objects == undefined) {
+        if (objects === undefined) {
             throw Error("Objects couldn't be found")
         }
 
@@ -69,13 +69,13 @@ export class RapidServer {
         }
 
         const name = config.name
-        if (name == undefined) {
+        if (name === undefined) {
             throw Error("Api name couldn't be found inside the config")
         }
         this.name = name
 
         const endpoints = config.endpoints
-        if (endpoints == undefined) {
+        if (endpoints === undefined) {
             throw Error("Endpoints couldn't be found inside the config")
         }
         this.endpoints = endpoints
@@ -104,7 +104,7 @@ export class RapidServer {
         IdStore.get(endpoint.name)
 
         const endpoint_name = endpoint.name
-        if (endpoint_name == undefined) {
+        if (endpoint_name === undefined) {
             throw Error("Endpoint name couldn't be found inside one of the endpoints in the config.json")
         }
 
@@ -118,7 +118,7 @@ export class RapidServer {
         }
 
         const endpoint_methods = endpoint.methods
-        if (endpoint_methods == undefined) {
+        if (endpoint_methods === undefined) {
             throw Error("Endpoint methods couldn't be found inside the endpoint " + endpoint_name)
         }
 
@@ -126,24 +126,24 @@ export class RapidServer {
         this.endpoints_for_html.push(endpoint_for_html)
 
         const object_name = endpoint.object
-        if (object_name == undefined) {
+        if (object_name === undefined) {
             throw Error("Object name couldn't be found inside the endpoint " + endpoint_name)
         }
 
         // @ts-ignore
         const object_class = this.objects[object_name]
-        if (object_class == undefined) {
+        if (object_class === undefined) {
             throw Error("Object class with the name " + object_name + " couldn't be found inside the api-objects.ts")
         }
 
         let id = new object_class({}).object_for_datacheck.id
 
         const hasId = endpoint.hasId
-        if (hasId == undefined) {
+        if (hasId === undefined) {
             throw Error("hasId couldn't be found inside the endpoint " + endpoint_name)
         }
 
-        if (hasId && id == undefined) {
+        if (hasId && id === undefined) {
             throw Error("Id couldn't be found inside the object " + object_name)
         }
 
@@ -206,7 +206,7 @@ export class RapidServer {
     }
 
     private endpointCheck(endpoint: ExpressEndpoint, method: string) {
-        let endpoint_for_html = this.endpoints_for_html.find(e => e.name == endpoint.name);
+        let endpoint_for_html = this.endpoints_for_html.find(e => e.name === endpoint.name);
         if (endpoint_for_html) {
             // check if the endpoint already has the GET method
             if (endpoint_for_html.methods.includes(method)) {

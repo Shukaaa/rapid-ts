@@ -15,7 +15,7 @@ export class IdStore {
     static get(name: string) {
         let idStorage = JSON.parse(fs.readFileSync(this.path, 'utf-8'))
 
-        if (idStorage[name] == undefined) {
+        if (idStorage[name] === undefined) {
             idStorage[name] = 0
             fs.writeFileSync(this.path, JSON.stringify(idStorage), 'utf-8')
         }
