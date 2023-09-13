@@ -3,6 +3,7 @@
 - Small enhancements for the readme & overview page
 - Added new config option overviewPage > enable: to enable/disable the overview page
 - Added new config option overviewPage > theme: to set the theme of the overview page ("LIGHT" or "DARK")
+- type declarations didn't build correctly
 
 ### 1.0.0
 - get rid of config.json and add config object to RapidServer constructor
