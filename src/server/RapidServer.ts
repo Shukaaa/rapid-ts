@@ -18,7 +18,7 @@ export class RapidServer {
     private readonly name: string = "";
     private readonly prefix: string = "";
     private readonly port: number = 0;
-    private readonly endpoints: any[] = [];
+    private readonly endpoints: RapidEndpoint[] = [];
     private readonly objects: object = {};
 
     constructor(config: RapidConfig, objects: object) {
@@ -87,10 +87,10 @@ export class RapidServer {
         });
     }
 
-    private generateEndpoint(endpoint: any) {
-        IdStore.get(endpoint["name"])
+    private generateEndpoint(endpoint: RapidEndpoint) {
+        IdStore.get(endpoint.name)
 
-        const endpoint_name = endpoint["name"]
+        const endpoint_name = endpoint.name
         if (endpoint_name == undefined) {
             throw Error("Endpoint name couldn't be found inside one of the endpoints in the config.json")
         }
@@ -104,7 +104,7 @@ export class RapidServer {
             JsonFileService.writeJsonFile(`./storage/${endpoint_name}.json`, [])
         }
 
-        const endpoint_methods = endpoint["methods"]
+        const endpoint_methods = endpoint.methods
         if (endpoint_methods == undefined) {
             throw Error("Endpoint methods couldn't be found inside the endpoint " + endpoint_name)
         }
@@ -112,7 +112,7 @@ export class RapidServer {
         endpoint_for_html.methods = endpoint_methods
         this.endpoints_for_html.push(endpoint_for_html)
 
-        const object_name = endpoint["object"]
+        const object_name = endpoint.object
         if (object_name == undefined) {
             throw Error("Object name couldn't be found inside the endpoint " + endpoint_name)
         }
@@ -125,7 +125,7 @@ export class RapidServer {
 
         let id = new object_class({}).object_for_datacheck.id
 
-        const hasId = endpoint["hasId"]
+        const hasId = endpoint.hasId
         if (hasId == undefined) {
             throw Error("hasId couldn't be found inside the endpoint " + endpoint_name)
         }
