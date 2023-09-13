@@ -1,6 +1,6 @@
 {
   "name": "@rapid-api/rapid-ts",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "(R)EST (A)PI (P)rovisioning and (I)ntegration with JSON (D)ata",
   "main": "lib/es5/index.js",
   "module": "lib/es6/index.js",
@@ -35,7 +35,6 @@
     "api",
     "json",
     "json-api",
-    "mock-api",
     "ts",
     "typescript",
     "javascript",
@@ -43,10 +42,7 @@
     "rest",
     "rest-api",
     "restful",
-    "restful-api",
-    "rest-api-mock",
-    "rest-api-mocking",
-    "rest-api-mock-server"
+    "restful-api"
   ],
   "bugs": "https://github.com/Shukaaa/rapid-ts/issues",
   "homepage": "https://github.com/Shukaaa/rapid-ts#readme"

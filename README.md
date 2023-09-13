@@ -4,7 +4,7 @@
 
 ## Description
 
-The "@rapid-api/rapid-ts" package allows you to quickly create a REST API with small js / ts. The API stores data locally in a folder. It is designed to generate small, and performant APIs for testing or as mock APIs. Please note that this solution is not intended to be a 100% secure or production-use API. It is well-suited for very small or private projects.
+The "@rapid-api/rapid-ts" package allows you to quickly create a REST API with small js / ts. The API stores data locally in a folder. It is designed to generate small, and performant APIs for testing or as APIs for private projects. Please note that this solution is not intended to be a 100% secure or production-use API.
 
 ## Installation
 
