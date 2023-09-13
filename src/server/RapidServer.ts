@@ -9,6 +9,7 @@ import {RapidEndpoint} from "../types/rapid-endpoints";
 import {buildHtml} from "../builder/html.builder";
 import {RapidConfig} from "../types/rapid-config";
 import {HtmlEndpoint} from "../types/html-endpoint";
+import {OverviewPageThemes} from "../types/overview-page-config";
 
 export class RapidServer {
     private app: Express = express();
@@ -17,16 +18,18 @@ export class RapidServer {
     private endpoints_for_html: HtmlEndpoint[] = [];
     private readonly name: string = "";
     private readonly prefix: string = "";
-    private readonly port: number = 0;
-    private readonly endpoints: any[] = [];
+    private readonly port: number = 3000;
+    private readonly endpoints: RapidEndpoint[] = [];
+    private readonly overviewPageEnable: boolean = true;
+    private readonly overviewPageTheme: OverviewPageThemes = "LIGHT";
     private readonly objects: object = {};
 
     constructor(config: RapidConfig, objects: object) {
-        if (config == undefined) {
+        if (config === undefined) {
             throw Error("Config couldn't be found")
         }
 
-        if (objects == undefined) {
+        if (objects === undefined) {
             throw Error("Objects couldn't be found")
         }
 
@@ -43,29 +46,36 @@ export class RapidServer {
         IdStore.check()
 
         const port = config.port
-        if (port == undefined) {
-            console.log("Port couldn't be found inside the config, so it will be set to 3000")
-            this.port = 3000
-        } else {
+        if (port != undefined) {
             this.port = port
         }
 
         const prefix = config.prefix
-        if (prefix == undefined) {
-            console.log("Prefix couldn't be found inside the config.json, so it will be set to api/v1/")
-            this.prefix = ""
-        } else {
+        if (prefix != undefined) {
             this.prefix = prefix
         }
 
+        const overviewPage = config.overviewPage
+        if (overviewPage != undefined) {
+            const enable = overviewPage.enable
+            if (enable != undefined) {
+                this.overviewPageEnable = enable
+            }
+
+            const theme = overviewPage.theme
+            if (theme != undefined) {
+                this.overviewPageTheme = theme
+            }
+        }
+
         const name = config.name
-        if (name == undefined) {
+        if (name === undefined) {
             throw Error("Api name couldn't be found inside the config")
         }
         this.name = name
 
         const endpoints = config.endpoints
-        if (endpoints == undefined) {
+        if (endpoints === undefined) {
             throw Error("Endpoints couldn't be found inside the config")
         }
         this.endpoints = endpoints
@@ -76,7 +86,10 @@ export class RapidServer {
             this.generateEndpoint(endpoint)
         }
 
-        this.createStartPage(this.prefix, this.name, this.endpoints_for_html)
+        if (this.overviewPageEnable) {
+            this.createStartPage(this.prefix, this.name, this.endpoints_for_html, this.overviewPageTheme)
+        }
+
         this.server = this.listen(this.port, this.name, this.prefix)
         this.hasBeenStarted = true
     }
@@ -87,11 +100,11 @@ export class RapidServer {
         });
     }
 
-    private generateEndpoint(endpoint: any) {
-        IdStore.get(endpoint["name"])
+    private generateEndpoint(endpoint: RapidEndpoint) {
+        IdStore.get(endpoint.name)
 
-        const endpoint_name = endpoint["name"]
-        if (endpoint_name == undefined) {
+        const endpoint_name = endpoint.name
+        if (endpoint_name === undefined) {
             throw Error("Endpoint name couldn't be found inside one of the endpoints in the config.json")
         }
 
@@ -104,33 +117,33 @@ export class RapidServer {
             JsonFileService.writeJsonFile(`./storage/${endpoint_name}.json`, [])
         }
 
-        const endpoint_methods = endpoint["methods"]
-        if (endpoint_methods == undefined) {
+        const endpoint_methods = endpoint.methods
+        if (endpoint_methods === undefined) {
             throw Error("Endpoint methods couldn't be found inside the endpoint " + endpoint_name)
         }
 
         endpoint_for_html.methods = endpoint_methods
         this.endpoints_for_html.push(endpoint_for_html)
 
-        const object_name = endpoint["object"]
-        if (object_name == undefined) {
+        const object_name = endpoint.object
+        if (object_name === undefined) {
             throw Error("Object name couldn't be found inside the endpoint " + endpoint_name)
         }
 
         // @ts-ignore
         const object_class = this.objects[object_name]
-        if (object_class == undefined) {
+        if (object_class === undefined) {
             throw Error("Object class with the name " + object_name + " couldn't be found inside the api-objects.ts")
         }
 
         let id = new object_class({}).object_for_datacheck.id
 
-        const hasId = endpoint["hasId"]
-        if (hasId == undefined) {
+        const hasId = endpoint.hasId
+        if (hasId === undefined) {
             throw Error("hasId couldn't be found inside the endpoint " + endpoint_name)
         }
 
-        if (hasId && id == undefined) {
+        if (hasId && id === undefined) {
             throw Error("Id couldn't be found inside the object " + object_name)
         }
 
@@ -139,9 +152,9 @@ export class RapidServer {
         }
     }
 
-    private createStartPage(prefix: string, api_name: string, final: HtmlEndpoint[]) {
+    private createStartPage(prefix: string, api_name: string, final: HtmlEndpoint[], theme: OverviewPageThemes) {
         this.app.get(prefix, (req, res) => {
-            res.send(buildHtml(api_name, final, prefix))
+            res.send(buildHtml(api_name, final, prefix, theme))
         });
     }
 
@@ -193,7 +206,7 @@ export class RapidServer {
     }
 
     private endpointCheck(endpoint: ExpressEndpoint, method: string) {
-        let endpoint_for_html = this.endpoints_for_html.find(e => e.name == endpoint.name);
+        let endpoint_for_html = this.endpoints_for_html.find(e => e.name === endpoint.name);
         if (endpoint_for_html) {
             // check if the endpoint already has the GET method
             if (endpoint_for_html.methods.includes(method)) {

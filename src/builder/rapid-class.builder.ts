@@ -1,5 +1,7 @@
+import {RapidObject} from "../interface/rapid-object.interface";
+
 export function getRapidObjectClass(object: object, constructor: (data: object) => void = (): void => {}): any {
-    return class {
+    return class implements RapidObject {
         object_for_datacheck: object = object
         object: object = {}
 

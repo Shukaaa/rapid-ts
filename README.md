@@ -1,10 +1,10 @@
 # 🪐 rapid-ts 🪐
 
-![top language badge](https://img.shields.io/github/languages/top/shukaaa/rapid-ts) ![npm (scoped)](https://img.shields.io/npm/v/@rapid-api/rapid-ts) ![GitHub commit activity](https://img.shields.io/github/commit-activity/w/shukaaa/rapid-ts) ![npm downloads](https://img.shields.io/npm/dm/@rapid-api/rapid-ts)
+![top language badge](https://img.shields.io/github/languages/top/shukaaa/rapid-ts) ![npm (scoped)](https://img.shields.io/npm/v/@rapid-api/rapid-ts) ![npm downloads](https://img.shields.io/npm/dt/@rapid-api/rapid-ts)
 
 ## Description
 
-The "@rapid-api/rapid-ts" package allows you to quickly create a REST API with small js / ts. The API stores data locally in a folder. It is designed to generate small, and performant APIs for testing or as mock APIs. Please note that this solution is not intended to be a 100% secure or production-use API. It is well-suited for very small or private projects.
+The "@rapid-api/rapid-ts" package allows you to quickly create a REST API with small js / ts. The API stores data locally in a folder. It is designed to generate small, and performant APIs for testing or as APIs for private projects. Please note that this solution is not intended to be a 100% secure or production-use API.
 
 ## Installation
 
@@ -39,7 +39,11 @@ const options = {
             object: "student", // The name of the rapid object associated with the endpoint. This specifies the structure of the data for that endpoint.
             hasId: true // A boolean value indicating whether the endpoint's objects have an ID property.
         }
-    ]
+    ],
+    overviewPage: { // An object containing the configuration for the overview page
+        enable: true, // A boolean value indicating whether the overview page should be enabled
+        theme: "LIGHT" // The theme of the overview page ("LIGHT" or "DARK")
+    }
 }
 ```
 
