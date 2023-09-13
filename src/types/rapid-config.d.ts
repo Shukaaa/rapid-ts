@@ -1,4 +1,4 @@
-import {RapidEndpoint} from "../interfaces/IRapidEndpoint";
+import {RapidEndpoint} from "./rapid-endpoints";
 
 export type RapidConfig = {
     name: string,
