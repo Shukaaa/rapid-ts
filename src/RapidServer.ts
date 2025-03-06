@@ -5,8 +5,9 @@ import {GenerateEndpointUtils} from './utils/generate-endpoint.utils';
 import {FileUtils} from "./utils/file.utils";
 import {IdStore} from "./stores/id.store";
 import {RapidEndpoint} from "./types/rapid-endpoints";
-import {buildHtml} from "./builder/html.builder";
 import {RapidConfig} from "./types/rapid-config";
+import {apiReference} from "@scalar/express-api-reference";
+import {OpenApiSpecGenerator} from "./generator/open-api-spec.generator";
 
 /**
  * The main class to start the server
@@ -37,6 +38,17 @@ export class RapidServer {
 
         this.app.use(bodyParser.json())
         this.app.use(bodyParser.urlencoded({extended: false}))
+        
+        this.app.get('/openapi.json', (req, res) => {
+						res.setHeader('Content-Type', 'application/json');
+          	res.send(OpenApiSpecGenerator.generateOpenApiSpec(this.config))
+        })
+        
+        this.app.use('/api-spec', apiReference({
+            spec: {
+                url: '/openapi.json',
+            }
+        }))
 
         IdStore.check()
 
@@ -88,17 +100,13 @@ export class RapidServer {
             this.generateEndpoint(endpoint)
         }
 
-        if (this.config.overviewPage?.enable) {
-            this.createStartPage()
-        }
-
         this.server = this.listen()
         this.hasBeenStarted = true
     }
 
     private listen() {
         return this.app.listen(this.config.port, () => {
-            console.log(`🪐 [${this.config.name}]: Server is running at http://localhost:${this.config.port}${this.config.prefix}`);
+            console.log(`🪐 ${this.config.name} is ready!\n\n🔗 API is running at http://localhost:${this.config.port}${this.config.prefix}\n📜 API Spec is running at http://localhost:${this.config.port}/api-spec`);
         });
     }
 
@@ -135,12 +143,6 @@ export class RapidServer {
                 endpoint.interceptUpdates
             )
         }
-    }
-
-    private createStartPage() {
-        this.app.get(this.config.prefix!!, (req, res) => {
-            res.send(buildHtml(this.config))
-        });
     }
 
     /**

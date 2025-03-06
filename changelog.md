@@ -1,3 +1,8 @@
+### 2.0.0
+- Massive configuration object refactoring for easier usage
+- Added automatically generated API Reference page with scalar
+- Removed runtime endpoint creation
+
 ### 1.0.1
 - Added missing type declarations
 - Small enhancements for the readme & overview page

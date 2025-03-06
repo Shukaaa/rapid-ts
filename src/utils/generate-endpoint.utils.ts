@@ -28,12 +28,11 @@ export class GenerateEndpointUtils {
                 app.get(endpoint_name + "/:id", (req, res) => {
                     const id = req.params.id
                     let jsonFile = FileUtils.readJsonFile(path)
-
-                    for (let i = 0; i < jsonFile.length; i++) {
-                        if (jsonFile[i]["id"] === id) {
-                            res.json(jsonFile[i])
-                            return
-                        }
+                    
+                    const object = jsonFile.find((object: any) => object["id"] === +id)
+                    if (object !== undefined) {
+                        res.json(object)
+                        return
                     }
 
                     ErrorUtils.jsonThrow("Couldn't find object with id " + id, res)

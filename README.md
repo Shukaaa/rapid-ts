@@ -4,7 +4,7 @@
 
 ## Description
 
-The "@rapid-api/rapid-ts" package allows you to quickly create a REST API with tiny js/ts configurations. The API stores custom data locally in a folder. It is designed to generate small, and performant APIs for fast testing or as an API for quick projects.
+`@rapid-api/rapid-ts` is a lightweight package for quickly creating REST APIs with minimal JS/TS configuration. It is specialized in CRUD operations and stores custom data locally in a folder. Designed for speed and efficiency, it enables the rapid development of small, high-performance APIs, making it ideal for fast testing or quick project setups.
 
 ## Installation
 
@@ -40,7 +40,7 @@ const options = {
                 name: "", // A string property
                 age: 0, // A number property
                 isMale: true, // A boolean property
-                subjects: [] // An array property
+                subjects: [], // An array property
             },
             interceptCreations: (data, event) => { // Optional: A function that will be called when a new object is created (POST). It receives the data and the event as arguments.
                 data.name = data.name.toLocaleUpperCase() // Event: { id: number }
@@ -49,11 +49,7 @@ const options = {
                 console.group(data, event) // Event: { method: 'PUT' | 'PATCH', id: number }
             }
         }
-    ],
-    overviewPage: { // An object containing the configuration for the overview page
-        enable: true, // A boolean value indicating whether the overview page should be enabled
-        theme: "LIGHT" // The theme of the overview page ("LIGHT" or "DARK")
-    }
+    ]
 }
 ```
 
@@ -67,6 +63,13 @@ import { RapidServer } from '@rapid-api/rapid-ts';
 const rapidServer = new RapidServer(options);
 rapidServer.start();
 ```
+
+### Step 3: Test Your API
+
+You can now test your API by visiting the following URL in your browser: `http://localhost:3000/api-spec`
+
+This will display the API reference page, which contains information about the available endpoints and their methods.
+You can also send requests to the API endpoints using the interface provided on the page.
 
 ### Additional Features
 
