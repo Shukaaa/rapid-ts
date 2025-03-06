@@ -1,6 +1,6 @@
 import * as fs from "fs";
 
-export class JsonFileService {
+export class FileUtils {
     static readJsonFile(filePath: string) {
         return JSON.parse(fs.readFileSync(filePath, 'utf-8'))
     }

@@ -1,14 +1,17 @@
-import {JsonFileService} from "../services/json-file.service";
+import {FileUtils} from "../utils/file.utils";
 import fs from "fs";
 
 export class IdStore {
-    static folder: string = "./storage/id"
-    static path: string = this.folder + "/ids.json"
+    static folder: string = "./storage"
+    static path: string = this.folder + "/id-counter.json"
 
     static check() {
-        if (!JsonFileService.exists(this.path)) {
+        if (!FileUtils.exists(this.folder)) {
             fs.mkdirSync(this.folder)
-            JsonFileService.writeJsonFile(this.path, {})
+        }
+
+        if (!FileUtils.exists(this.path)) {
+            fs.writeFileSync(this.path, "{}", 'utf-8')
         }
     }
 
@@ -27,6 +30,6 @@ export class IdStore {
         let idStorage = JSON.parse(fs.readFileSync(this.path, 'utf-8'))
         idStorage[name] = id
 
-        JsonFileService.writeJsonFile(this.path, idStorage)
+        FileUtils.writeJsonFile(this.path, idStorage)
     }
 }

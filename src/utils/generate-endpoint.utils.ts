@@ -1,30 +1,35 @@
-import { Express } from 'express';
+import {Express} from 'express';
 import {ErrorUtils} from "./error.utils";
 import {IdStore} from "../stores/id.store";
-import {JsonFileService} from "../services/json-file.service";
+import {FileUtils} from "./file.utils";
+import {InterceptCreationsFn, InterceptUpdatesFn} from "../types/rapid-endpoints";
 
 export class GenerateEndpointUtils {
-    public static buildEndpoint(method: string, app: Express, name: string, object_class: any, hasID: boolean, prefix: string) {
+    public static buildEndpoint(
+        method: string,
+        app: Express,
+        name: string,
+        objectReference: any,
+        prefix: string,
+        interceptCreations: InterceptCreationsFn | undefined,
+        interceptUpdates: InterceptUpdatesFn | undefined
+    ) {
         let path: string = `./storage/${name}.json`
         let endpoint_name: string = prefix + "/" + name
 
         switch (method) {
             case "GET":
                 app.get(endpoint_name, (req, res) => {
-                    res.json(JsonFileService.readJsonFile(path))
+                    res.json(FileUtils.readJsonFile(path))
                 })
                 break;
 
             case "GET_BY_ID":
-                if (!hasID) {
-                    throw Error("GET_BY_ID method is not allowed for " + name + " because it doesn't have an id")
-                }
-
                 app.get(endpoint_name + "/:id", (req, res) => {
                     const id = req.params.id
-                    let jsonFile = JsonFileService.readJsonFile(path)
+                    let jsonFile = FileUtils.readJsonFile(path)
 
-                    for(let i = 0; i < jsonFile.length; i++) {
+                    for (let i = 0; i < jsonFile.length; i++) {
                         if (jsonFile[i]["id"] === id) {
                             res.json(jsonFile[i])
                             return
@@ -37,82 +42,74 @@ export class GenerateEndpointUtils {
 
             case "POST":
                 app.post(endpoint_name, (req, res) => {
-                    let jsonFile = JsonFileService.readJsonFile(path)
+                    let jsonFile = FileUtils.readJsonFile(path)
                     let body = req.body
-                    let object_for_datacheck = new object_class({}).object_for_datacheck
 
-                    if (!this.datatypeChecks(body, object_class, object_for_datacheck, res)) {
+                    const latestId = IdStore.get(name)
+                    const id = latestId + 1
+
+                    if (interceptCreations !== undefined) interceptCreations(body, {id})
+
+                    if (!this.datatypeChecks(body, objectReference, res)) {
                         return;
                     }
 
-                    let object = new object_class(body)
+                    IdStore.set(name, id)
+                    body['id'] = id
 
-                    if (hasID) {
-                        let id = IdStore.get(name)
-                        IdStore.set(name, id + 1)
-
-                        object.object.id = id + 1
-                    }
-
-                    if (!this.undefinedChecks(object, object_for_datacheck, res)) {
+                    if (!this.undefinedChecks(body, objectReference, res)) {
                         return;
                     }
 
-                    jsonFile.push(object.object)
-                    JsonFileService.writeJsonFile(path, jsonFile)
+                    jsonFile.push(body)
+                    FileUtils.writeJsonFile(path, jsonFile)
 
-                    res.status(201).json(object.object)
+                    res.status(201).json(body)
                 })
                 break;
 
             case "PUT":
-                if (!hasID) {
-                    throw Error("PUT method is not allowed for " + name + " because it doesn't have an id")
-                }
-
                 app.put(endpoint_name + "/:id", (req, res) => {
                     const id: number = +req.params.id
-                    let jsonFile = JsonFileService.readJsonFile(path)
+                    let jsonFile = FileUtils.readJsonFile(path)
                     let body = req.body
-                    let object_for_datacheck = new object_class({}).object_for_datacheck
 
-                    if (!this.datatypeChecks(body, object_class, object_for_datacheck, res)) {
+                    if (interceptUpdates !== undefined) interceptUpdates(body, {id, method: "PUT"})
+
+                    if (!this.datatypeChecks(body, objectReference, res)) {
                         return;
                     }
 
-                    let object = new object_class(body)
-                    object.object.id = id
-
-                    if (!this.undefinedChecks(object, object_for_datacheck, res)) {
+                    if (!this.undefinedChecks(body, objectReference, res)) {
                         return;
                     }
 
                     // replace the object with the same id
                     for (let i = 0; i < jsonFile.length; i++) {
-                        if (jsonFile[i]["id"] === object.object.id) {
-                            jsonFile[i] = object.object
-                            JsonFileService.writeJsonFile(path, jsonFile)
+                        if (jsonFile[i]["id"] === id) {
+                            body.id = id
+                            jsonFile[i] = body
+                            FileUtils.writeJsonFile(path, jsonFile)
 
-                            res.json(object.object)
+                            res.json(body)
                             return
                         }
                     }
+
+                    // if no object with the same id was found, throw an error
+                    ErrorUtils.jsonThrow("Couldn't find object with id " + id, res)
                 })
                 break;
 
             case "DELETE":
-                if (!hasID) {
-                    throw Error("DELETE method is not allowed for " + name + " because it doesn't have an id")
-                }
-
                 app.delete(endpoint_name + "/:id", (req, res) => {
-                    const id = +req.params.id
-                    let jsonFile = JsonFileService.readJsonFile(path)
+                    const id: number = +req.params.id
+                    let jsonFile = FileUtils.readJsonFile(path)
 
-                    for(let i = 0; i < jsonFile.length; i++) {
+                    for (let i = 0; i < jsonFile.length; i++) {
                         if (jsonFile[i]["id"] === id) {
                             jsonFile.splice(i, 1)
-                            JsonFileService.writeJsonFile(path, jsonFile)
+                            FileUtils.writeJsonFile(path, jsonFile)
 
                             res.status(204).send()
                             return
@@ -124,50 +121,50 @@ export class GenerateEndpointUtils {
                 break;
 
             case "PATCH":
-                if (!hasID) {
-                    throw Error("PATCH method is not allowed for " + name + " because it doesn't have an id")
-                }
-
                 app.patch(endpoint_name + "/:id", (req, res) => {
                     const id: number = +req.params.id
-                    let jsonFile = JsonFileService.readJsonFile(path)
+                    let jsonFile = FileUtils.readJsonFile(path)
                     let body = req.body
-                    let object_for_datacheck = new object_class({}).object_for_datacheck
 
-                    jsonFile.forEach((object: any) => {
+                    if (interceptUpdates !== undefined) interceptUpdates(body, {id, method: "PATCH"})
+
+                    for(let i = 0; i < jsonFile.length; i++) {
+                        const object = jsonFile[i]
                         if (object["id"] === id) {
                             for (let property in body) {
-                                if (typeof body[property] != typeof object_for_datacheck[property]) {
-                                    ErrorUtils.jsonThrow("The property " + property + " is not of the type " + typeof new object_class({}).object_for_datacheck[property], res)
+                                if (typeof body[property] != typeof objectReference[property]) {
+                                    ErrorUtils.jsonThrow("The property " + property + " is not of the type " + typeof objectReference[property], res)
                                     return
                                 }
 
                                 object[property] = body[property]
                             }
 
-                            JsonFileService.writeJsonFile(path, jsonFile)
+                            FileUtils.writeJsonFile(path, jsonFile)
                             res.json(object)
                             return
                         }
-                    })
+                    }
+
+                    ErrorUtils.jsonThrow("Couldn't find object with id " + id, res)
                 })
                 break;
-        
+
             default:
                 throw new Error("Unknown method " + method + " in config file")
         }
     }
 
-    private static undefinedChecks(object: any, object_for_datacheck: any, res: any) {
-        for (let property in object.object) {
-            if (object.object[property] === undefined) {
+    private static undefinedChecks(object: any, objectReference: any, res: any) {
+        for (let property in object) {
+            if (object[property] === undefined) {
                 ErrorUtils.jsonThrow("The property " + property + " is undefined", res)
                 return false
             }
         }
 
-        for (const key in object_for_datacheck) {
-            if (!object.object.hasOwnProperty(key)) {
+        for (const key in objectReference) {
+            if (!object.hasOwnProperty(key)) {
                 ErrorUtils.jsonThrow("The property " + key + " is not defined", res)
                 return false
             }
@@ -176,15 +173,15 @@ export class GenerateEndpointUtils {
         return true
     }
 
-    private static datatypeChecks(body: any, object_class: any, object_for_datacheck: any, res: any) {
+    private static datatypeChecks(body: any, objectReference: any, res: any) {
         for (let property in body) {
-            if (new object_class({}).object_for_datacheck[property] === undefined) {
+            if (objectReference[property] === undefined) {
                 ErrorUtils.jsonThrow("The property " + property + " is not defined", res)
                 return false
             }
 
-            if (typeof body[property] != typeof object_for_datacheck[property]) {
-                ErrorUtils.jsonThrow("The property " + property + " needs to be type of " + typeof new object_class({}).object_for_datacheck[property], res)
+            if (typeof body[property] != typeof objectReference[property]) {
+                ErrorUtils.jsonThrow("The property " + property + " needs to be type of " + typeof objectReference[property], res)
                 return false
             }
         }

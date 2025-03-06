@@ -1,5 +1,5 @@
-import {HtmlEndpoint} from "../types/html-endpoint";
-import {OverviewPageThemes} from "../types/overview-page-config";
+import {RapidConfig} from "../types/rapid-config";
+import {RapidEndpoint} from "../types/rapid-endpoints";
 
 const themeMap = {
     LIGHT: {
@@ -18,7 +18,8 @@ const themeMap = {
     }
 }
 
-export function buildHtml(api_name: string, endpoints: HtmlEndpoint[], prefix: string, theme: OverviewPageThemes) {
+export function buildHtml(config: RapidConfig) {
+    const theme = config.overviewPage?.theme!!;
     return `
                 <head>
                     <style>
@@ -56,22 +57,22 @@ export function buildHtml(api_name: string, endpoints: HtmlEndpoint[], prefix: s
                             vertical-align: bottom;
                         }
                     </style>
-                    <title>${api_name}</title>
+                    <title>${config.name}</title>
                 </head>
                 <body>
                     <main>
-                        <h1>${api_name} is running!</h1>
+                        <h1>${config.name} is running!</h1>
                         <p>created by: <a href="https://github.com/Shukaaa/rapid-ts">rapid-ts</a></p>
                         
                         <h2>Endpoints</h2>
                         <ul>
-                            ${createEndpoints(endpoints, prefix)}
+                            ${createEndpoints(config.endpoints, config.prefix!!)}
                         </ul>
                     </main>
                 </body>`
 }
 
-function createEndpoints(final: HtmlEndpoint[], prefix: string) {
+function createEndpoints(final: RapidEndpoint[], prefix: string) {
     return final.map(endpoint => `<li><a href="${prefix}/${endpoint.name}">${prefix}/${endpoint.name}</a> ${
         endpoint.methods.map(method => {
             switch (method) {
