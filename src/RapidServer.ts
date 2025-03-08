@@ -8,6 +8,7 @@ import {RapidEndpoint} from "./types/rapid-endpoints";
 import {RapidConfig} from "./types/rapid-config";
 import {apiReference} from "@scalar/express-api-reference";
 import {OpenApiSpecGenerator} from "./generator/open-api-spec.generator";
+import {EnumStore} from "./stores/enum.store";
 
 /**
  * The main class to start the server
@@ -36,8 +37,12 @@ export class RapidServer {
             }
             endpointNames.push(endpoint.name)
         }
-
+        
         this.config = config
+        
+        if (config.enums !== undefined) {
+            EnumStore.setEnums(config.enums)
+        }
         
         if (!FileUtils.exists("./storage")) {
             fs.mkdirSync("./storage")

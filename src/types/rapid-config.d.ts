@@ -7,4 +7,5 @@ export type RapidConfig = {
     port?: number,
     prefix?: string,
     overviewPage?: OverviewPageConfig
+    enums?: { [key: string]: string[] }
 }

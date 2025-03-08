@@ -3,6 +3,7 @@ import {ErrorUtils} from "./error.utils";
 import {IdStore} from "../stores/id.store";
 import {FileUtils} from "./file.utils";
 import {InterceptCreationsFn, InterceptUpdatesFn} from "../types/rapid-endpoints";
+import {EnumStore} from "../stores/enum.store";
 
 export class GenerateEndpointUtils {
     public static buildEndpoint(
@@ -174,10 +175,10 @@ export class GenerateEndpointUtils {
                         if (typeof expectedType === "object") {
                             const result = this.validateObject(item, expectedType, `${path}${key}[${index}].`, res);
                             if (!result) return false;
+                        } else {
+                            const result = this.typeofCheck(item, expectedType, `${path}${key}[${index}]`, res);
+                            if (!result) return false;
                         }
-                        
-                        const result = this.typeofCheck(item, expectedType, `${path}${key}[${index}]`, res);
-                        if (!result) return false;
                     });
                 }
             } else if (typeof refType === "object") {
@@ -198,6 +199,11 @@ export class GenerateEndpointUtils {
             return this.checkOtherEndpointsForId(value, idEndpointName, path, res);
         }
         
+        if (type.startsWith("enum:")) {
+            const enumName = type.split(":")[1];
+            return this.checkEnum(value, enumName, path, res);
+        }
+        
         if (typeof value !== type) {
             ErrorUtils.jsonThrow(`Invalid type at ${path}: Expected ${type}, got ${typeof value}`, res);
             return false;
@@ -207,13 +213,26 @@ export class GenerateEndpointUtils {
     }
 
     private static checkOtherEndpointsForId(id: number, endpointName: string, path: string, res: any): boolean {
-        console.log(`Checking for id ${id} in ${endpointName}`);
         const jsonFile = FileUtils.readJsonFile(`./storage/${endpointName}.json`);
-        console.log(jsonFile);
         const object = jsonFile.find((object: any) => object["id"] === id);
-        console.log(object);
         if (object === undefined) {
             ErrorUtils.jsonThrow(`Invalid id at ${path}: Couldn't find object with id ${id} in ${endpointName}`, res);
+            return false;
+        }
+        
+        return true;
+    }
+    
+    private static checkEnum(value: string, enumName: string, path: string, res: any): boolean {
+        const enumValues = EnumStore.getEnum(enumName);
+        
+        if (enumValues === undefined) {
+            ErrorUtils.jsonThrow(`Invalid enum at ${path}: Couldn't find enum ${enumName}`, res);
+            return false;
+        }
+        
+        if (!enumValues.includes(value)) {
+            ErrorUtils.jsonThrow(`Invalid enum at ${path}: Expected one of ${enumValues.join(", ")}, got ${value}`, res);
             return false;
         }
         

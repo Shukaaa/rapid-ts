@@ -177,6 +177,9 @@ export class OpenApiSpecGenerator {
 			} else if (typeof reference === "string" && reference.startsWith("id:")) {
 				const objectName = reference.split(":")[1];
 				return { type: "number", description: "The id of the object " + objectName };
+			} else if (typeof reference === "string" && reference.startsWith("enum:")) {
+				const enumName = reference.split(":")[1];
+				return { "$ref": `#/components/schemas/enum-${enumName}` };
 			} else if (Array.isArray(reference)) {
 				if (reference.length > 0) {
 					return {
@@ -239,6 +242,24 @@ export class OpenApiSpecGenerator {
 		for (const endpoint of config.endpoints) {
 			const schema = this.createSchemaForEndpoint(endpoint);
 			schemas = {...schemas, ...schema};
+		}
+		
+		const enumSchemas = this.createEnumSchemas(config);
+		schemas = {...schemas, ...enumSchemas};
+		
+		return schemas;
+	}
+	
+	private static createEnumSchemas(config: RapidConfig) {
+		let schemas = {} as any;
+		
+		if (config.enums) {
+			Object.keys(config.enums).forEach(key => {
+				schemas["enum-"+key] = {
+					type: "string",
+					enum: config.enums!![key]
+				}
+			});
 		}
 		
 		return schemas;
