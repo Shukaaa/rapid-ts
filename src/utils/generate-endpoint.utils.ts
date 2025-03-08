@@ -47,18 +47,14 @@ export class GenerateEndpointUtils {
                     const latestId = IdStore.get(name)
                     const id = latestId + 1
 
-                    if (interceptCreations !== undefined) interceptCreations(body, {id})
-
-                    if (!this.datatypeChecks(body, objectReference, res)) {
+                    if (!this.validateObject(body, objectReference, name+".", res)) {
                         return;
                     }
+                    
+                    if (interceptCreations !== undefined) interceptCreations(body, {id})
 
                     IdStore.set(name, id)
                     body['id'] = id
-
-                    if (!this.undefinedChecks(body, objectReference, res)) {
-                        return;
-                    }
 
                     jsonFile.push(body)
                     FileUtils.writeJsonFile(path, jsonFile)
@@ -72,16 +68,12 @@ export class GenerateEndpointUtils {
                     const id: number = +req.params.id
                     let jsonFile = FileUtils.readJsonFile(path)
                     let body = req.body
-
+                    
+                    if (!this.validateObject(body, objectReference, name+".", res)) {
+                        return;
+                    }
+                    
                     if (interceptUpdates !== undefined) interceptUpdates(body, {id, method: "PUT"})
-
-                    if (!this.datatypeChecks(body, objectReference, res)) {
-                        return;
-                    }
-
-                    if (!this.undefinedChecks(body, objectReference, res)) {
-                        return;
-                    }
 
                     // replace the object with the same id
                     for (let i = 0; i < jsonFile.length; i++) {
@@ -131,11 +123,13 @@ export class GenerateEndpointUtils {
                         const object = jsonFile[i]
                         if (object["id"] === id) {
                             for (let property in body) {
-                                if (typeof body[property] != typeof objectReference[property]) {
-                                    ErrorUtils.jsonThrow("The property " + property + " is not of the type " + typeof objectReference[property], res)
-                                    return
+                                const newObjectReference = {}
+                                // @ts-ignore
+                                newObjectReference[property] = typeof objectReference[property] === "object" ? objectReference[property] : [typeof objectReference[property]]
+                                if (!this.validateObject({[property]: body[property]}, newObjectReference, name+".", res)) {
+                                    return;
                                 }
-
+                                
                                 object[property] = body[property]
                             }
 
@@ -153,38 +147,76 @@ export class GenerateEndpointUtils {
                 throw new Error("Unknown method " + method + " in config file")
         }
     }
+    
+    private static validateObject(obj: any, reference: any, path: string, res: any): boolean {
+        if (typeof obj !== "object" || obj === null) {
+            ErrorUtils.jsonThrow(`Invalid object at ${path}: Expected object, got ${typeof obj}`, res);
+            return false;
+        }
+        
+        for (const key in reference) {
+            if (!obj.hasOwnProperty(key)) {
+                ErrorUtils.jsonThrow(`Missing key at ${path}${key}`, res);
+                return false;
+            }
+            
+            const refType = reference[key];
+            const value = obj[key];
 
-    private static undefinedChecks(object: any, objectReference: any, res: any) {
-        for (let property in object) {
-            if (object[property] === undefined) {
-                ErrorUtils.jsonThrow("The property " + property + " is undefined", res)
-                return false
+            if (Array.isArray(refType)) {
+                if (!Array.isArray(value)) {
+                    ErrorUtils.jsonThrow(`Invalid type at ${path}${key}: Expected array, got ${typeof value}`, res);
+                    return false;
+                }
+                if (refType.length > 0) {
+                    const expectedType = refType[0];
+                    value.forEach((item: any, index: number) => {
+                        if (typeof expectedType === "object") {
+                            const result = this.validateObject(item, expectedType, `${path}${key}[${index}].`, res);
+                            if (!result) return false;
+                        }
+                        
+                        const result = this.typeofCheck(item, expectedType, `${path}${key}[${index}]`, res);
+                        if (!result) return false;
+                    });
+                }
+            } else if (typeof refType === "object") {
+                const result = this.validateObject(value, refType, `${path}${key}.`, res);
+                if (!result) return false;
+            } else {
+                const result = this.typeofCheck(value, refType, `${path}${key}`, res);
+                if (!result) return false;
             }
         }
-
-        for (const key in objectReference) {
-            if (!object.hasOwnProperty(key)) {
-                ErrorUtils.jsonThrow("The property " + key + " is not defined", res)
-                return false
-            }
+        
+        return true;
+    }
+    
+    private static typeofCheck(value: any, type: string, path: string, res: any): boolean {
+        if (type.startsWith("id:")) {
+            const idEndpointName = type.split(":")[1];
+            return this.checkOtherEndpointsForId(value, idEndpointName, path, res);
         }
-
-        return true
+        
+        if (typeof value !== type) {
+            ErrorUtils.jsonThrow(`Invalid type at ${path}: Expected ${type}, got ${typeof value}`, res);
+            return false;
+        }
+        
+        return true;
     }
 
-    private static datatypeChecks(body: any, objectReference: any, res: any) {
-        for (let property in body) {
-            if (objectReference[property] === undefined) {
-                ErrorUtils.jsonThrow("The property " + property + " is not defined", res)
-                return false
-            }
-
-            if (typeof body[property] != typeof objectReference[property]) {
-                ErrorUtils.jsonThrow("The property " + property + " needs to be type of " + typeof objectReference[property], res)
-                return false
-            }
+    private static checkOtherEndpointsForId(id: number, endpointName: string, path: string, res: any): boolean {
+        console.log(`Checking for id ${id} in ${endpointName}`);
+        const jsonFile = FileUtils.readJsonFile(`./storage/${endpointName}.json`);
+        console.log(jsonFile);
+        const object = jsonFile.find((object: any) => object["id"] === id);
+        console.log(object);
+        if (object === undefined) {
+            ErrorUtils.jsonThrow(`Invalid id at ${path}: Couldn't find object with id ${id} in ${endpointName}`, res);
+            return false;
         }
-
-        return true
+        
+        return true;
     }
 }

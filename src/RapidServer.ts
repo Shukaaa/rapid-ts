@@ -28,10 +28,17 @@ export class RapidServer {
         if (config === undefined) {
             throw Error("Config couldn't be found")
         }
+        
+        let endpointNames: string[] = []
+        for (let endpoint of config.endpoints) {
+            if (endpointNames.includes(endpoint.name)) {
+                throw Error("Endpoint names must be unique! Found duplicate: " + endpoint.name)
+            }
+            endpointNames.push(endpoint.name)
+        }
 
         this.config = config
-
-        // check if storage folder exists
+        
         if (!FileUtils.exists("./storage")) {
             fs.mkdirSync("./storage")
         }

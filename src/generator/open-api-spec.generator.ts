@@ -169,15 +169,37 @@ export class OpenApiSpecGenerator {
 	}
 	
 	private static createSchemaForEndpoint(endpoint: RapidEndpoint) {
-		let objectReferenceTypes: { [key: string]: { type: string } } = {};
+		let objectReferenceTypes: { [key: string]: any } = {};
+		
+		const processReference = (reference: any): any => {
+			if (typeof reference === "string" && ["string", "number", "boolean"].includes(reference)) {
+				return { type: reference };
+			} else if (typeof reference === "string" && reference.startsWith("id:")) {
+				const objectName = reference.split(":")[1];
+				return { type: "number", description: "The id of the object " + objectName };
+			} else if (Array.isArray(reference)) {
+				if (reference.length > 0) {
+					return {
+						type: "array",
+						items: processReference(reference[0])
+					}
+				}
+				return { type: "array", items: {} }; // Fallback for empty arrays
+			} else if (typeof reference === "object" && reference !== null) {
+				return {
+					type: "object",
+					properties: Object.keys(reference).reduce((acc, key) => {
+						acc[key] = processReference(reference[key]);
+						return acc;
+					}, {} as { [key: string]: any })
+				};
+			}
+			return { type: "object" }; // Fallback for unknown types
+		};
+		
 		Object.keys(endpoint.objectReference).forEach(key => {
 			// @ts-ignore
-			objectReferenceTypes[key] = {type: typeof endpoint.objectReference[key]};
-			
-			// @ts-ignore
-			if (Array.isArray(endpoint.objectReference[key])) {
-				objectReferenceTypes[key] = {type: "array"};
-			}
+			objectReferenceTypes[key] = processReference(endpoint.objectReference[key]);
 		});
 		
 		const schema = {
@@ -188,8 +210,8 @@ export class OpenApiSpecGenerator {
 					description: "The id of the object"
 				},
 				...objectReferenceTypes
-			},
-		}
+			}
+		};
 		
 		const firstObjectAttribute = Object.keys(endpoint.objectReference)[0];
 		const singleAttributeSchema = {
@@ -197,7 +219,7 @@ export class OpenApiSpecGenerator {
 			properties: {
 				[firstObjectAttribute]: objectReferenceTypes[firstObjectAttribute],
 			}
-		}
+		};
 		
 		return {
 			[endpoint.name]: schema,
