@@ -1,34 +1,40 @@
-import { Express } from 'express';
+import {Express} from 'express';
 import {ErrorUtils} from "./error.utils";
 import {IdStore} from "../stores/id.store";
-import {JsonFileService} from "../services/json-file.service";
+import {FileUtils} from "./file.utils";
+import {InterceptCreationsFn, InterceptUpdatesFn} from "../types/rapid-endpoints";
+import {EnumStore} from "../stores/enum.store";
+import {RapidConfig} from "../types/rapid-config";
 
 export class GenerateEndpointUtils {
-    public static buildEndpoint(method: string, app: Express, name: string, object_class: any, hasID: boolean, prefix: string) {
+    public static buildEndpoint(
+        method: string,
+        app: Express,
+        name: string,
+        objectReference: any,
+        config: RapidConfig,
+        interceptCreations: InterceptCreationsFn | undefined,
+        interceptUpdates: InterceptUpdatesFn | undefined
+    ) {
         let path: string = `./storage/${name}.json`
-        let endpoint_name: string = prefix + "/" + name
+        let endpoint_name: string = config.prefix + "/" + name
 
         switch (method) {
             case "GET":
                 app.get(endpoint_name, (req, res) => {
-                    res.json(JsonFileService.readJsonFile(path))
+                    res.json(FileUtils.readJsonFile(path))
                 })
                 break;
 
             case "GET_BY_ID":
-                if (!hasID) {
-                    throw Error("GET_BY_ID method is not allowed for " + name + " because it doesn't have an id")
-                }
-
                 app.get(endpoint_name + "/:id", (req, res) => {
                     const id = req.params.id
-                    let jsonFile = JsonFileService.readJsonFile(path)
-
-                    for(let i = 0; i < jsonFile.length; i++) {
-                        if (jsonFile[i]["id"] === id) {
-                            res.json(jsonFile[i])
-                            return
-                        }
+                    let jsonFile = FileUtils.readJsonFile(path)
+                    
+                    const object = jsonFile.find((object: any) => object["id"] === +id)
+                    if (object !== undefined) {
+                        res.json(object)
+                        return
                     }
 
                     ErrorUtils.jsonThrow("Couldn't find object with id " + id, res)
@@ -37,82 +43,66 @@ export class GenerateEndpointUtils {
 
             case "POST":
                 app.post(endpoint_name, (req, res) => {
-                    let jsonFile = JsonFileService.readJsonFile(path)
+                    let jsonFile = FileUtils.readJsonFile(path)
                     let body = req.body
-                    let object_for_datacheck = new object_class({}).object_for_datacheck
 
-                    if (!this.datatypeChecks(body, object_class, object_for_datacheck, res)) {
+                    const latestId = IdStore.get(name)
+                    const id = latestId + 1
+
+                    if (!this.validateObject(body, objectReference, name+".", res)) {
                         return;
                     }
+                    
+                    if (interceptCreations !== undefined) interceptCreations(body, {id})
 
-                    let object = new object_class(body)
+                    IdStore.set(name, id)
+                    body['id'] = id
 
-                    if (hasID) {
-                        let id = IdStore.get(name)
-                        IdStore.set(name, id + 1)
+                    jsonFile.push(body)
+                    FileUtils.writeJsonFile(path, jsonFile)
 
-                        object.object.id = id + 1
-                    }
-
-                    if (!this.undefinedChecks(object, object_for_datacheck, res)) {
-                        return;
-                    }
-
-                    jsonFile.push(object.object)
-                    JsonFileService.writeJsonFile(path, jsonFile)
-
-                    res.status(201).json(object.object)
+                    res.status(201).json(body)
                 })
                 break;
 
             case "PUT":
-                if (!hasID) {
-                    throw Error("PUT method is not allowed for " + name + " because it doesn't have an id")
-                }
-
                 app.put(endpoint_name + "/:id", (req, res) => {
                     const id: number = +req.params.id
-                    let jsonFile = JsonFileService.readJsonFile(path)
+                    let jsonFile = FileUtils.readJsonFile(path)
                     let body = req.body
-                    let object_for_datacheck = new object_class({}).object_for_datacheck
-
-                    if (!this.datatypeChecks(body, object_class, object_for_datacheck, res)) {
+                    
+                    if (!this.validateObject(body, objectReference, name+".", res)) {
                         return;
                     }
-
-                    let object = new object_class(body)
-                    object.object.id = id
-
-                    if (!this.undefinedChecks(object, object_for_datacheck, res)) {
-                        return;
-                    }
+                    
+                    if (interceptUpdates !== undefined) interceptUpdates(body, {id, method: "PUT"})
 
                     // replace the object with the same id
                     for (let i = 0; i < jsonFile.length; i++) {
-                        if (jsonFile[i]["id"] === object.object.id) {
-                            jsonFile[i] = object.object
-                            JsonFileService.writeJsonFile(path, jsonFile)
+                        if (jsonFile[i]["id"] === id) {
+                            body.id = id
+                            jsonFile[i] = body
+                            FileUtils.writeJsonFile(path, jsonFile)
 
-                            res.json(object.object)
+                            res.json(body)
                             return
                         }
                     }
+
+                    // if no object with the same id was found, throw an error
+                    ErrorUtils.jsonThrow("Couldn't find object with id " + id, res)
                 })
                 break;
 
             case "DELETE":
-                if (!hasID) {
-                    throw Error("DELETE method is not allowed for " + name + " because it doesn't have an id")
-                }
-
                 app.delete(endpoint_name + "/:id", (req, res) => {
-                    const id = +req.params.id
-                    let jsonFile = JsonFileService.readJsonFile(path)
-
-                    for(let i = 0; i < jsonFile.length; i++) {
+                    const id: number = +req.params.id
+                    let jsonFile = FileUtils.readJsonFile(path)
+                    
+                    for (let i = 0; i < jsonFile.length; i++) {
                         if (jsonFile[i]["id"] === id) {
                             jsonFile.splice(i, 1)
-                            JsonFileService.writeJsonFile(path, jsonFile)
+                            FileUtils.writeJsonFile(path, jsonFile)
 
                             res.status(204).send()
                             return
@@ -124,71 +114,136 @@ export class GenerateEndpointUtils {
                 break;
 
             case "PATCH":
-                if (!hasID) {
-                    throw Error("PATCH method is not allowed for " + name + " because it doesn't have an id")
-                }
-
                 app.patch(endpoint_name + "/:id", (req, res) => {
                     const id: number = +req.params.id
-                    let jsonFile = JsonFileService.readJsonFile(path)
+                    let jsonFile = FileUtils.readJsonFile(path)
                     let body = req.body
-                    let object_for_datacheck = new object_class({}).object_for_datacheck
 
-                    jsonFile.forEach((object: any) => {
+                    if (interceptUpdates !== undefined) interceptUpdates(body, {id, method: "PATCH"})
+
+                    for(let i = 0; i < jsonFile.length; i++) {
+                        const object = jsonFile[i]
                         if (object["id"] === id) {
                             for (let property in body) {
-                                if (typeof body[property] != typeof object_for_datacheck[property]) {
-                                    ErrorUtils.jsonThrow("The property " + property + " is not of the type " + typeof new object_class({}).object_for_datacheck[property], res)
-                                    return
+                                const newObjectReference = {}
+                                // @ts-ignore
+                                newObjectReference[property] = typeof objectReference[property] === "object" ? objectReference[property] : [typeof objectReference[property]]
+                                if (!this.validateObject({[property]: body[property]}, newObjectReference, name+".", res)) {
+                                    return;
                                 }
-
+                                
                                 object[property] = body[property]
                             }
 
-                            JsonFileService.writeJsonFile(path, jsonFile)
+                            FileUtils.writeJsonFile(path, jsonFile)
                             res.json(object)
                             return
                         }
-                    })
+                    }
+
+                    ErrorUtils.jsonThrow("Couldn't find object with id " + id, res)
                 })
                 break;
-        
+
             default:
                 throw new Error("Unknown method " + method + " in config file")
         }
     }
+    
+    private static validateObject(obj: any, reference: any, path: string, res: any): boolean {
+        if (typeof obj !== "object" || obj === null) {
+            ErrorUtils.jsonThrow(`Invalid object at ${path}: Expected object, got ${typeof obj}`, res);
+            return false;
+        }
+        
+        for (const key in reference) {
+            if (!obj.hasOwnProperty(key)) {
+                ErrorUtils.jsonThrow(`Missing key at ${path}${key}`, res);
+                return false;
+            }
+            
+            const refType = reference[key];
+            const value = obj[key];
 
-    private static undefinedChecks(object: any, object_for_datacheck: any, res: any) {
-        for (let property in object.object) {
-            if (object.object[property] === undefined) {
-                ErrorUtils.jsonThrow("The property " + property + " is undefined", res)
-                return false
+            if (Array.isArray(refType)) {
+                if (!Array.isArray(value)) {
+                    ErrorUtils.jsonThrow(`Invalid type at ${path}${key}: Expected array, got ${typeof value}`, res);
+                    return false;
+                }
+                if (refType.length > 0) {
+                    const expectedType = refType[0];
+                    value.forEach((item: any, index: number) => {
+                        if (typeof expectedType === "object") {
+                            const result = this.validateObject(item, expectedType, `${path}${key}[${index}].`, res);
+                            if (!result) return false;
+                        } else {
+                            const result = this.typeofCheck(item, expectedType, `${path}${key}[${index}]`, res);
+                            if (!result) return false;
+                        }
+                    });
+                }
+            } else if (typeof refType === "object") {
+                const result = this.validateObject(value, refType, `${path}${key}.`, res);
+                if (!result) return false;
+            } else {
+                const result = this.typeofCheck(value, refType, `${path}${key}`, res);
+                if (!result) return false;
             }
         }
-
-        for (const key in object_for_datacheck) {
-            if (!object.object.hasOwnProperty(key)) {
-                ErrorUtils.jsonThrow("The property " + key + " is not defined", res)
-                return false
+        
+        for (const key in obj) {
+            if (!reference.hasOwnProperty(key)) {
+                ErrorUtils.jsonThrow(`Invalid key at ${path}${key}: Unexpected key`, res);
+                return false;
             }
         }
-
-        return true
+        
+        return true;
+    }
+    
+    private static typeofCheck(value: any, type: string, path: string, res: any): boolean {
+        if (type.startsWith("id:")) {
+            const idEndpointName = type.split(":")[1];
+            return this.checkOtherEndpointsForId(value, idEndpointName, path, res);
+        }
+        
+        if (type.startsWith("enum:")) {
+            const enumName = type.split(":")[1];
+            return this.checkEnum(value, enumName, path, res);
+        }
+        
+        if (typeof value !== type) {
+            ErrorUtils.jsonThrow(`Invalid type at ${path}: Expected ${type}, got ${typeof value}`, res);
+            return false;
+        }
+        
+        return true;
     }
 
-    private static datatypeChecks(body: any, object_class: any, object_for_datacheck: any, res: any) {
-        for (let property in body) {
-            if (new object_class({}).object_for_datacheck[property] === undefined) {
-                ErrorUtils.jsonThrow("The property " + property + " is not defined", res)
-                return false
-            }
-
-            if (typeof body[property] != typeof object_for_datacheck[property]) {
-                ErrorUtils.jsonThrow("The property " + property + " needs to be type of " + typeof new object_class({}).object_for_datacheck[property], res)
-                return false
-            }
+    private static checkOtherEndpointsForId(id: number, endpointName: string, path: string, res: any): boolean {
+        const jsonFile = FileUtils.readJsonFile(`./storage/${endpointName}.json`);
+        const object = jsonFile.find((object: any) => object["id"] === id);
+        if (object === undefined) {
+            ErrorUtils.jsonThrow(`Invalid id at ${path}: Couldn't find object with id ${id} in ${endpointName}`, res);
+            return false;
         }
-
-        return true
+        
+        return true;
+    }
+    
+    private static checkEnum(value: string, enumName: string, path: string, res: any): boolean {
+        const enumValues = EnumStore.getEnum(enumName);
+        
+        if (enumValues === undefined) {
+            ErrorUtils.jsonThrow(`Invalid enum at ${path}: Couldn't find enum ${enumName}`, res);
+            return false;
+        }
+        
+        if (!enumValues.includes(value)) {
+            ErrorUtils.jsonThrow(`Invalid enum at ${path}: Expected one of ${enumValues.join(", ")}, got ${value}`, res);
+            return false;
+        }
+        
+        return true;
     }
 }

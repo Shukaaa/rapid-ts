@@ -1,3 +1,12 @@
+### 2.0.0
+- Changed whole objectReference system
+  - Added enums
+  - Added ID References
+- Massive configuration object refactoring for easier usage
+- Added automatically generated API Reference page with scalar
+- Removed runtime endpoint creation
+- Added official documentation page
+
 ### 1.0.1
 - Added missing type declarations
 - Small enhancements for the readme & overview page
