@@ -4,6 +4,7 @@ import {IdStore} from "../stores/id.store";
 import {FileUtils} from "./file.utils";
 import {InterceptCreationsFn, InterceptUpdatesFn} from "../types/rapid-endpoints";
 import {EnumStore} from "../stores/enum.store";
+import {RapidConfig} from "../types/rapid-config";
 
 export class GenerateEndpointUtils {
     public static buildEndpoint(
@@ -11,12 +12,12 @@ export class GenerateEndpointUtils {
         app: Express,
         name: string,
         objectReference: any,
-        prefix: string,
+        config: RapidConfig,
         interceptCreations: InterceptCreationsFn | undefined,
         interceptUpdates: InterceptUpdatesFn | undefined
     ) {
         let path: string = `./storage/${name}.json`
-        let endpoint_name: string = prefix + "/" + name
+        let endpoint_name: string = config.prefix + "/" + name
 
         switch (method) {
             case "GET":
@@ -97,7 +98,7 @@ export class GenerateEndpointUtils {
                 app.delete(endpoint_name + "/:id", (req, res) => {
                     const id: number = +req.params.id
                     let jsonFile = FileUtils.readJsonFile(path)
-
+                    
                     for (let i = 0; i < jsonFile.length; i++) {
                         if (jsonFile[i]["id"] === id) {
                             jsonFile.splice(i, 1)
@@ -187,6 +188,13 @@ export class GenerateEndpointUtils {
             } else {
                 const result = this.typeofCheck(value, refType, `${path}${key}`, res);
                 if (!result) return false;
+            }
+        }
+        
+        for (const key in obj) {
+            if (!reference.hasOwnProperty(key)) {
+                ErrorUtils.jsonThrow(`Invalid key at ${path}${key}: Unexpected key`, res);
+                return false;
             }
         }
         

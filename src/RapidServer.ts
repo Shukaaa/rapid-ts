@@ -150,7 +150,7 @@ export class RapidServer {
                 this.app,
                 endpointName,
                 objectReference,
-                this.config.prefix!!,
+                this.config,
                 endpoint.interceptCreations,
                 endpoint.interceptUpdates
             )
